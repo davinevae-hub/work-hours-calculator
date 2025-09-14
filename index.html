@@ -11,7 +11,8 @@
   input { margin: 5px 0 15px; padding: 8px; width: 100%; max-width: 250px; box-sizing: border-box; }
   button { padding: 10px 15px; margin: 5px 2px; cursor: pointer; border: none; background: #4CAF50; color: white; font-weight: bold; border-radius: 5px; }
   button:hover { background: #45a049; }
-  table { border-collapse: collapse; width: 100%; margin-top: 20px; background: white; }
+  .table-container { overflow-x:auto; margin-top:20px; }
+  table { border-collapse: collapse; width: 100%; min-width: 900px; background: white; }
   th, td { border: 1px solid #ccc; padding: 10px; text-align: center; }
   th { background: #4CAF50; color: white; }
   tfoot { font-weight: bold; background: #eee; }
@@ -26,10 +27,11 @@
 <p><b>Instructions:</b></p>
 <ol>
   <li>Enter your <b>hourly wage</b> and optional <b>tax rate</b> (default 22%).</li>
-  <li>You can add <b>Bills</b> or <b>Other Income</b> separately.</li>
-  <li>Other income includes Tips, Bonuses, and Commissions.</li>
+  <li>Add <b>Bills</b> or <b>Other Income</b> separately.</li>
+  <li>Other income includes Tips, Bonuses, and Commissions (optional).</li>
   <li>Click <b>Calculate</b> to see hours needed, taxes, and savings.</li>
   <li>Click <b>Reset</b> to start over.</li>
+  <li>You can download the results as <b>CSV</b> or <b>PDF</b>.</li>
 </ol>
 
 <div class="section">
@@ -56,8 +58,6 @@
 
 <div class="section">
   <h3>Add Other Income</h3>
-  <label>Nickname (Optional):</label>
-  <input type="text" id="incomeName" placeholder="e.g. Side Job">
 
   <label>Tips ($):</label>
   <input type="number" id="tips" placeholder="Optional">
@@ -79,7 +79,7 @@
   <button onclick="resetCalculator()">Reset</button>
 </div>
 
-<div id="result"></div>
+<div id="result" class="table-container"></div>
 
 <div id="downloadButtons" style="display:none;">
   <button onclick="downloadCSV()">Download CSV</button>
@@ -123,7 +123,6 @@ function addBill() {
 }
 
 function addIncome() {
-  const name = document.getElementById('incomeName').value.trim() || "Other Income";
   const tips = parseFloat(document.getElementById('tips').value) || 0;
   const bonuses = parseFloat(document.getElementById('bonuses').value) || 0;
   const commissions = parseFloat(document.getElementById('commissions').value) || 0;
@@ -133,13 +132,12 @@ function addIncome() {
     return;
   }
 
-  otherIncome.push({ name, tips, bonuses, commissions });
+  otherIncome.push({ tips, bonuses, commissions });
 
-  document.getElementById('incomeList').innerHTML = otherIncome.map(i => 
-    `<li>${i.name}: Tips $${i.tips.toFixed(2)}, Bonuses $${i.bonuses.toFixed(2)}, Commissions $${i.commissions.toFixed(2)}</li>`
+  document.getElementById('incomeList').innerHTML = otherIncome.map((i,index) => 
+    `<li>Other Income #${index+1}: Tips $${i.tips.toFixed(2)}, Bonuses $${i.bonuses.toFixed(2)}, Commissions $${i.commissions.toFixed(2)}</li>`
   ).join("");
 
-  document.getElementById('incomeName').value = '';
   document.getElementById('tips').value = '';
   document.getElementById('bonuses').value = '';
   document.getElementById('commissions').value = '';
@@ -178,7 +176,6 @@ function calculate() {
 
   let totals = { bill:0, hours:0, wages:0, tips:0, bonuses:0, commissions:0, earnings:0, taxes:0, paid:0, savings:0 };
 
-  // Bills first
   bills.forEach(bill => {
     const netHourly = wage * (1 - taxRate);
     const exactHours = bill.amount / netHourly;
@@ -215,7 +212,6 @@ function calculate() {
     totals.savings += savings;
   });
 
-  // Other income
   otherIncome.forEach(income => {
     const wagesEarned = 0;
     const earningsBeforeTax = income.tips + income.bonuses + income.commissions;
@@ -225,7 +221,7 @@ function calculate() {
 
     table += `
       <tr>
-        <td>${income.name}</td>
+        <td>Other Income</td>
         <td>$0.00</td>
         <td>0</td>
         <td>$0.00</td>
@@ -280,7 +276,6 @@ function resetCalculator() {
   document.getElementById('taxRate').value = 22;
   document.getElementById('billName').value = '';
   document.getElementById('bill').value = '';
-  document.getElementById('incomeName').value = '';
   document.getElementById('tips').value = '';
   document.getElementById('bonuses').value = '';
   document.getElementById('commissions').value = '';
@@ -316,7 +311,7 @@ function downloadPDF() {
 </script>
 
 <footer style="text-align:center; margin-top:20px; font-size:0.9rem; color:#555;">
-  Code by <b>Davi Nevae LLC</b>
+  Code by <b>Davi Nevae LLC</b> | <a href="https://www.davinevae.com" target="_blank">www.davinevae.com</a>
 </footer>
 
 </body>
