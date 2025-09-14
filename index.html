@@ -16,6 +16,7 @@
     th { background: #4CAF50; color: white; }
     tfoot { font-weight: bold; background: #eee; }
     details { margin-top: 20px; }
+    #downloadButtons { margin-top: 15px; display: none; }
   </style>
 </head>
 <body>
@@ -51,6 +52,11 @@
   <ul id="billList"></ul>
 
   <div id="result"></div>
+
+  <div id="downloadButtons">
+    <button onclick="downloadCSV()">Download as CSV</button>
+    <button onclick="downloadPDF()">Download as PDF</button>
+  </div>
 
   <details>
     <summary style="cursor:pointer; font-weight:bold; color:#4CAF50; font-size:1.1rem;">
@@ -158,14 +164,41 @@
       </table>`;
 
       document.getElementById('result').innerHTML = table;
+      document.getElementById('downloadButtons').style.display = "block"; // show export buttons
     }
 
     function resetCalculator() {
       bills = [];
       document.getElementById('billList').innerHTML = '';
       document.getElementById('result').innerHTML = '';
+      document.getElementById('downloadButtons').style.display = "none";
       document.getElementById('wage').value = '';
       document.getElementById('taxRate').value = 22;
+    }
+
+    function downloadCSV() {
+      const rows = document.querySelectorAll("table tr");
+      let csv = [];
+      rows.forEach(row => {
+        let cols = row.querySelectorAll("td, th");
+        let rowData = [];
+        cols.forEach(col => rowData.push(col.innerText));
+        csv.push(rowData.join(","));
+      });
+
+      let csvFile = new Blob([csv.join("\n")], { type: "text/csv" });
+      let link = document.createElement("a");
+      link.href = URL.createObjectURL(csvFile);
+      link.download = "work_hours_calculator.csv";
+      link.click();
+    }
+
+    function downloadPDF() {
+      let printWindow = window.open('', '', 'height=600,width=800');
+      printWindow.document.write('<html><head><title>Work Hours Report</title></head><body>');
+      printWindow.document.write(document.querySelector("table").outerHTML);
+      printWindow.document.close();
+      printWindow.print();
     }
   </script>
 
