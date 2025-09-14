@@ -15,7 +15,8 @@
   th, td { border: 1px solid #ccc; padding: 10px; text-align: center; }
   th { background: #4CAF50; color: white; }
   tfoot { font-weight: bold; background: #eee; }
-  ul#billList { padding-left: 15px; }
+  ul#billList, ul#incomeList { padding-left: 15px; }
+  .section { margin-top:20px; }
 </style>
 </head>
 <body>
@@ -25,39 +26,58 @@
 <p><b>Instructions:</b></p>
 <ol>
   <li>Enter your <b>hourly wage</b> and optional <b>tax rate</b> (default 22%).</li>
-  <li>Optional: Enter <b>Tips, Bonuses, Commissions</b> (can leave blank).</li>
-  <li>Add bills with a nickname and amount.</li>
+  <li>You can add <b>Bills</b> or <b>Other Income</b> separately.</li>
+  <li>Other income includes Tips, Bonuses, and Commissions.</li>
   <li>Click <b>Calculate</b> to see hours needed, taxes, and savings.</li>
   <li>Click <b>Reset</b> to start over.</li>
 </ol>
 
-<label>Hourly Wage ($):</label>
-<input type="number" id="wage" placeholder="e.g. 21">
+<div class="section">
+  <label>Hourly Wage ($):</label>
+  <input type="number" id="wage" placeholder="e.g. 21">
 
-<label>Tax Rate (%):</label>
-<input type="number" id="taxRate" placeholder="Default 22" value="22">
+  <label>Tax Rate (%):</label>
+  <input type="number" id="taxRate" placeholder="Default 22" value="22">
+</div>
 
-<label>Tips ($) - Optional:</label>
-<input type="number" id="tips" placeholder="Optional">
+<div class="section">
+  <h3>Add Bill</h3>
+  <label>Bill Nickname:</label>
+  <input type="text" id="billName" placeholder="e.g. Rent">
 
-<label>Bonuses ($) - Optional:</label>
-<input type="number" id="bonuses" placeholder="Optional">
+  <label>Bill Amount ($):</label>
+  <input type="number" id="bill" placeholder="e.g. 140">
 
-<label>Commissions ($) - Optional:</label>
-<input type="number" id="commissions" placeholder="Optional">
+  <button onclick="addBill()">Add Bill</button>
 
-<label>Bill Nickname:</label>
-<input type="text" id="billName" placeholder="e.g. Rent">
+  <h4>Added Bills:</h4>
+  <ul id="billList"></ul>
+</div>
 
-<label>Bill Amount ($):</label>
-<input type="number" id="bill" placeholder="e.g. 140">
+<div class="section">
+  <h3>Add Other Income</h3>
+  <label>Nickname (Optional):</label>
+  <input type="text" id="incomeName" placeholder="e.g. Side Job">
 
-<button onclick="addBill()">Add Bill</button>
-<button onclick="calculate()">Calculate</button>
-<button onclick="resetCalculator()">Reset</button>
+  <label>Tips ($):</label>
+  <input type="number" id="tips" placeholder="Optional">
 
-<h3>Added Bills:</h3>
-<ul id="billList"></ul>
+  <label>Bonuses ($):</label>
+  <input type="number" id="bonuses" placeholder="Optional">
+
+  <label>Commissions ($):</label>
+  <input type="number" id="commissions" placeholder="Optional">
+
+  <button onclick="addIncome()">Add Other Income</button>
+
+  <h4>Added Other Income:</h4>
+  <ul id="incomeList"></ul>
+</div>
+
+<div class="section">
+  <button onclick="calculate()">Calculate</button>
+  <button onclick="resetCalculator()">Reset</button>
+</div>
 
 <div id="result"></div>
 
@@ -81,27 +101,45 @@
 
 <script>
 let bills = [];
+let otherIncome = [];
 
 function addBill() {
   const name = document.getElementById('billName').value.trim();
   const amount = parseFloat(document.getElementById('bill').value);
-  const tips = parseFloat(document.getElementById('tips').value) || 0;
-  const bonuses = parseFloat(document.getElementById('bonuses').value) || 0;
-  const commissions = parseFloat(document.getElementById('commissions').value) || 0;
 
   if (!name || isNaN(amount) || amount <= 0) {
     alert("Please enter a valid nickname and bill amount.");
     return;
   }
 
-  bills.push({ name, amount, tips, bonuses, commissions });
+  bills.push({ name, amount });
 
   document.getElementById('billList').innerHTML = bills.map(b => 
-    `<li>${b.name}: $${b.amount.toFixed(2)} | Tips: $${b.tips.toFixed(2)}, Bonuses: $${b.bonuses.toFixed(2)}, Commissions: $${b.commissions.toFixed(2)}</li>`
+    `<li>${b.name}: $${b.amount.toFixed(2)}</li>`
   ).join("");
 
   document.getElementById('billName').value = '';
   document.getElementById('bill').value = '';
+}
+
+function addIncome() {
+  const name = document.getElementById('incomeName').value.trim() || "Other Income";
+  const tips = parseFloat(document.getElementById('tips').value) || 0;
+  const bonuses = parseFloat(document.getElementById('bonuses').value) || 0;
+  const commissions = parseFloat(document.getElementById('commissions').value) || 0;
+
+  if(tips === 0 && bonuses === 0 && commissions === 0) {
+    alert("Please enter at least one value for Tips, Bonuses, or Commissions.");
+    return;
+  }
+
+  otherIncome.push({ name, tips, bonuses, commissions });
+
+  document.getElementById('incomeList').innerHTML = otherIncome.map(i => 
+    `<li>${i.name}: Tips $${i.tips.toFixed(2)}, Bonuses $${i.bonuses.toFixed(2)}, Commissions $${i.commissions.toFixed(2)}</li>`
+  ).join("");
+
+  document.getElementById('incomeName').value = '';
   document.getElementById('tips').value = '';
   document.getElementById('bonuses').value = '';
   document.getElementById('commissions').value = '';
@@ -111,15 +149,20 @@ function calculate() {
   const wage = parseFloat(document.getElementById('wage').value);
   const taxRate = parseFloat(document.getElementById('taxRate').value)/100 || 0.22;
 
-  if (isNaN(wage) || wage <= 0 || bills.length === 0) {
-    alert("Please enter a valid wage and at least one bill.");
+  if (isNaN(wage) || wage <= 0) {
+    alert("Please enter a valid wage.");
+    return;
+  }
+
+  if (bills.length === 0 && otherIncome.length === 0) {
+    alert("Please add at least one bill or other income.");
     return;
   }
 
   let table = `
     <table>
       <tr>
-        <th>Bill</th>
+        <th>Item</th>
         <th>Bill Amount ($)</th>
         <th>Hours Needed</th>
         <th>Wages Earned ($)</th>
@@ -135,13 +178,14 @@ function calculate() {
 
   let totals = { bill:0, hours:0, wages:0, tips:0, bonuses:0, commissions:0, earnings:0, taxes:0, paid:0, savings:0 };
 
+  // Bills first
   bills.forEach(bill => {
-    const netHourly = wage * (1 - taxRate); 
+    const netHourly = wage * (1 - taxRate);
     const exactHours = bill.amount / netHourly;
     const roundedHours = Math.ceil(exactHours);
 
     const wagesEarned = roundedHours * wage;
-    const earningsBeforeTax = wagesEarned + bill.tips + bill.bonuses + bill.commissions;
+    const earningsBeforeTax = wagesEarned;
     const taxes = earningsBeforeTax * taxRate;
     const amountPaid = bill.amount;
     const savings = earningsBeforeTax - taxes - amountPaid;
@@ -152,9 +196,9 @@ function calculate() {
         <td>$${bill.amount.toFixed(2)}</td>
         <td>${roundedHours}</td>
         <td>$${wagesEarned.toFixed(2)}</td>
-        <td>$${bill.tips.toFixed(2)}</td>
-        <td>$${bill.bonuses.toFixed(2)}</td>
-        <td>$${bill.commissions.toFixed(2)}</td>
+        <td>$0.00</td>
+        <td>$0.00</td>
+        <td>$0.00</td>
         <td>$${earningsBeforeTax.toFixed(2)}</td>
         <td>$${taxes.toFixed(2)}</td>
         <td>$${amountPaid.toFixed(2)}</td>
@@ -165,12 +209,41 @@ function calculate() {
     totals.bill += bill.amount;
     totals.hours += roundedHours;
     totals.wages += wagesEarned;
-    totals.tips += bill.tips;
-    totals.bonuses += bill.bonuses;
-    totals.commissions += bill.commissions;
     totals.earnings += earningsBeforeTax;
     totals.taxes += taxes;
     totals.paid += amountPaid;
+    totals.savings += savings;
+  });
+
+  // Other income
+  otherIncome.forEach(income => {
+    const wagesEarned = 0;
+    const earningsBeforeTax = income.tips + income.bonuses + income.commissions;
+    const taxes = earningsBeforeTax * taxRate;
+    const amountPaid = 0;
+    const savings = earningsBeforeTax - taxes;
+
+    table += `
+      <tr>
+        <td>${income.name}</td>
+        <td>$0.00</td>
+        <td>0</td>
+        <td>$0.00</td>
+        <td>$${income.tips.toFixed(2)}</td>
+        <td>$${income.bonuses.toFixed(2)}</td>
+        <td>$${income.commissions.toFixed(2)}</td>
+        <td>$${earningsBeforeTax.toFixed(2)}</td>
+        <td>$${taxes.toFixed(2)}</td>
+        <td>$0.00</td>
+        <td>$${savings.toFixed(2)}</td>
+      </tr>
+    `;
+
+    totals.tips += income.tips;
+    totals.bonuses += income.bonuses;
+    totals.commissions += income.commissions;
+    totals.earnings += earningsBeforeTax;
+    totals.taxes += taxes;
     totals.savings += savings;
   });
 
@@ -198,11 +271,16 @@ function calculate() {
 
 function resetCalculator() {
   bills = [];
+  otherIncome = [];
   document.getElementById('billList').innerHTML = '';
+  document.getElementById('incomeList').innerHTML = '';
   document.getElementById('result').innerHTML = '';
   document.getElementById('downloadButtons').style.display = "none";
   document.getElementById('wage').value = '';
   document.getElementById('taxRate').value = 22;
+  document.getElementById('billName').value = '';
+  document.getElementById('bill').value = '';
+  document.getElementById('incomeName').value = '';
   document.getElementById('tips').value = '';
   document.getElementById('bonuses').value = '';
   document.getElementById('commissions').value = '';
@@ -238,7 +316,7 @@ function downloadPDF() {
 </script>
 
 <footer style="text-align:center; margin-top:20px; font-size:0.9rem; color:#555;">
-  Code by <b>Davi Nevae LLC</b> | <a href="https://www.davinevae.com" target="_blank">www.davinevae.com</a>
+  Code by <b>Davi Nevae LLC</b>
 </footer>
 
 </body>
