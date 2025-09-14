@@ -71,12 +71,11 @@
     📊 How Calculations Work
   </summary>
   <ul style="margin-top:10px;">
-    <li>NetHourly = Wage × (1 - TaxRate)</li>
-    <li>Hours Needed = ceil(Bill ÷ NetHourly)</li>
-    <li>Earnings Before Tax = RoundedHours × Wage + Tips + Bonuses + Commissions</li>
+    <li>Wages Earned = Rounded Hours × Wage</li>
+    <li>Hours Needed = ceil(Bill ÷ Net Hourly Wage)</li>
+    <li>Earnings Before Tax = Wages + Tips + Bonuses + Commissions</li>
     <li>Taxes = Earnings Before Tax × TaxRate</li>
-    <li>Amount Earned = Earnings Before Tax - Taxes</li>
-    <li>Savings = Amount Earned - Bill Amount</li>
+    <li>Savings = Earnings After Tax - Bill Amount</li>
   </ul>
 </details>
 
@@ -124,54 +123,55 @@ function calculate() {
         <th>Bill</th>
         <th>Bill Amount ($)</th>
         <th>Hours Needed</th>
-        <th>Earnings Before Tax ($)</th>
+        <th>Wages Earned ($)</th>
         <th>Tips ($)</th>
         <th>Bonuses ($)</th>
         <th>Commissions ($)</th>
+        <th>Earnings Before Tax ($)</th>
         <th>Taxes ($)</th>
-        <th>Amount Earned ($)</th>
         <th>Amount Paid ($)</th>
         <th>Savings ($)</th>
       </tr>
   `;
 
-  let totals = { bill:0, hours:0, earnings:0, tips:0, bonuses:0, commissions:0, taxes:0, earned:0, paid:0, savings:0 };
+  let totals = { bill:0, hours:0, wages:0, tips:0, bonuses:0, commissions:0, earnings:0, taxes:0, paid:0, savings:0 };
 
   bills.forEach(bill => {
-    const netHourly = wage * (1 - taxRate);
+    const netHourly = wage * (1 - taxRate); 
     const exactHours = bill.amount / netHourly;
     const roundedHours = Math.ceil(exactHours);
 
-    const earningsBeforeTax = roundedHours * wage + bill.tips + bill.bonuses + bill.commissions;
+    const wagesEarned = roundedHours * wage;
+    const earningsBeforeTax = wagesEarned + bill.tips + bill.bonuses + bill.commissions;
     const taxes = earningsBeforeTax * taxRate;
-    const amountEarned = earningsBeforeTax - taxes;
-    const savings = amountEarned - bill.amount;
+    const amountPaid = bill.amount;
+    const savings = earningsBeforeTax - taxes - amountPaid;
 
     table += `
       <tr>
         <td>${bill.name}</td>
         <td>$${bill.amount.toFixed(2)}</td>
         <td>${roundedHours}</td>
-        <td>$${earningsBeforeTax.toFixed(2)}</td>
+        <td>$${wagesEarned.toFixed(2)}</td>
         <td>$${bill.tips.toFixed(2)}</td>
         <td>$${bill.bonuses.toFixed(2)}</td>
         <td>$${bill.commissions.toFixed(2)}</td>
+        <td>$${earningsBeforeTax.toFixed(2)}</td>
         <td>$${taxes.toFixed(2)}</td>
-        <td>$${amountEarned.toFixed(2)}</td>
-        <td>$${bill.amount.toFixed(2)}</td>
+        <td>$${amountPaid.toFixed(2)}</td>
         <td>$${savings.toFixed(2)}</td>
       </tr>
     `;
 
     totals.bill += bill.amount;
     totals.hours += roundedHours;
-    totals.earnings += earningsBeforeTax;
+    totals.wages += wagesEarned;
     totals.tips += bill.tips;
     totals.bonuses += bill.bonuses;
     totals.commissions += bill.commissions;
+    totals.earnings += earningsBeforeTax;
     totals.taxes += taxes;
-    totals.earned += amountEarned;
-    totals.paid += bill.amount;
+    totals.paid += amountPaid;
     totals.savings += savings;
   });
 
@@ -181,12 +181,12 @@ function calculate() {
         <td><b>Totals</b></td>
         <td>$${totals.bill.toFixed(2)}</td>
         <td>${totals.hours}</td>
-        <td>$${totals.earnings.toFixed(2)}</td>
+        <td>$${totals.wages.toFixed(2)}</td>
         <td>$${totals.tips.toFixed(2)}</td>
         <td>$${totals.bonuses.toFixed(2)}</td>
         <td>$${totals.commissions.toFixed(2)}</td>
+        <td>$${totals.earnings.toFixed(2)}</td>
         <td>$${totals.taxes.toFixed(2)}</td>
-        <td>$${totals.earned.toFixed(2)}</td>
         <td>$${totals.paid.toFixed(2)}</td>
         <td>$${totals.savings.toFixed(2)}</td>
       </tr>
@@ -235,6 +235,7 @@ function downloadPDF() {
   printWindow.document.write('</body></html>');
   printWindow.document.close();
   printWindow.print();
+}
 }
 </script>
 
