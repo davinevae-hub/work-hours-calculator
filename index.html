@@ -1,258 +1,246 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Work Hours & Bills Calculator</title>
-  <style>
-    body { font-family: Arial, sans-serif; margin: 10px; background: #f9f9f9; }
-    h2 { color: #4CAF50; text-align: center; }
-    label { font-weight: bold; margin-top: 10px; display: block; }
-    input { margin: 5px 0 15px; padding: 8px; width: 100%; max-width: 250px; box-sizing: border-box; }
-    button { padding: 10px 15px; margin: 5px 2px; cursor: pointer; border: none; background: #4CAF50; color: white; font-weight: bold; border-radius: 5px; }
-    button:hover { background: #45a049; }
-    #downloadButtons { margin-top: 15px; display: none; }
-    ul#billList { padding-left: 15px; }
-    details { margin-top: 20px; }
-
-    table { border-collapse: collapse; width: 100%; margin-top: 20px; background: white; overflow-x: auto; display: block; }
-    th, td { border: 1px solid #ccc; padding: 10px; text-align: center; min-width: 100px; }
-    th { background: #4CAF50; color: white; }
-    tfoot { font-weight: bold; background: #eee; }
-
-    @media (max-width: 768px) {
-      table, thead, tbody, th, td, tr { display: block; }
-      tr { margin-bottom: 15px; border-bottom: 2px solid #ddd; }
-      th { text-align: left; background: #4CAF50; color: white; padding-left: 10px; }
-      td { text-align: left; padding-left: 10px; border: none; border-bottom: 1px solid #ccc; }
-      td::before { content: attr(data-label); font-weight: bold; display: inline-block; width: 120px; }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Work Hours & Bills Calculator</title>
+<style>
+  body { font-family: Arial, sans-serif; margin: 10px; background: #f9f9f9; }
+  h2 { color: #4CAF50; text-align: center; }
+  label { font-weight: bold; margin-top: 10px; display: block; }
+  input { margin: 5px 0 15px; padding: 8px; width: 100%; max-width: 250px; box-sizing: border-box; }
+  button { padding: 10px 15px; margin: 5px 2px; cursor: pointer; border: none; background: #4CAF50; color: white; font-weight: bold; border-radius: 5px; }
+  button:hover { background: #45a049; }
+  table { border-collapse: collapse; width: 100%; margin-top: 20px; background: white; }
+  th, td { border: 1px solid #ccc; padding: 10px; text-align: center; }
+  th { background: #4CAF50; color: white; }
+  tfoot { font-weight: bold; background: #eee; }
+  ul#billList { padding-left: 15px; }
+</style>
 </head>
 <body>
 
-  <h2>Work Hours & Bills Calculator</h2>
+<h2>Work Hours & Bills Calculator</h2>
 
-  <p><b>Instructions:</b></p>
-  <ol>
-    <li>Enter your <b>hourly wage</b> and <b>tax rate</b> (default 22%).</li>
-    <li>Add optional income fields: Tips, Bonuses, Commissions (leave blank if none). These are <b>not taxed</b>.</li>
-    <li>Add each bill with a nickname and amount.</li>
-    <li>Click <b>Add Bill</b>. Optional income fields reset for the next bill.</li>
-    <li>Click <b>Calculate</b> to see hours needed, taxes, take-home pay, and savings.</li>
-    <li>Click <b>Reset</b> to start over.</li>
-  </ol>
+<p><b>Instructions:</b></p>
+<ol>
+  <li>Enter your <b>hourly wage</b> and optional <b>tax rate</b> (default 22%).</li>
+  <li>Optional: Enter <b>Tips, Bonuses, Commissions</b> (can leave blank).</li>
+  <li>Add bills with a nickname and amount.</li>
+  <li>Click <b>Calculate</b> to see hours needed, taxes, and savings.</li>
+  <li>Click <b>Reset</b> to start over.</li>
+</ol>
 
-  <label>Hourly Wage ($):</label>
-  <input type="number" id="wage" placeholder="e.g. 21">
+<label>Hourly Wage ($):</label>
+<input type="number" id="wage" placeholder="e.g. 21">
 
-  <label>Tax Rate (%):</label>
-  <input type="number" id="taxRate" placeholder="Default 22" value="22">
+<label>Tax Rate (%):</label>
+<input type="number" id="taxRate" placeholder="Default 22" value="22">
 
-  <label>Tips ($) - Optional:</label>
-  <input type="number" id="tips" placeholder="Optional">
+<label>Tips ($) - Optional:</label>
+<input type="number" id="tips" placeholder="Optional">
 
-  <label>Bonuses ($) - Optional:</label>
-  <input type="number" id="bonuses" placeholder="Optional">
+<label>Bonuses ($) - Optional:</label>
+<input type="number" id="bonuses" placeholder="Optional">
 
-  <label>Commissions ($) - Optional:</label>
-  <input type="number" id="commissions" placeholder="Optional">
+<label>Commissions ($) - Optional:</label>
+<input type="number" id="commissions" placeholder="Optional">
 
-  <label>Bill Nickname:</label>
-  <input type="text" id="billName" placeholder="e.g. Rent">
+<label>Bill Nickname:</label>
+<input type="text" id="billName" placeholder="e.g. Rent">
 
-  <label>Bill Amount ($):</label>
-  <input type="number" id="bill" placeholder="e.g. 140">
+<label>Bill Amount ($):</label>
+<input type="number" id="bill" placeholder="e.g. 140">
 
-  <button onclick="addBill()">Add Bill</button>
-  <button onclick="calculate()">Calculate</button>
-  <button onclick="resetCalculator()">Reset</button>
+<button onclick="addBill()">Add Bill</button>
+<button onclick="calculate()">Calculate</button>
+<button onclick="resetCalculator()">Reset</button>
 
-  <h3>Added Bills:</h3>
-  <ul id="billList"></ul>
+<h3>Added Bills:</h3>
+<ul id="billList"></ul>
 
-  <div id="result"></div>
+<div id="result"></div>
 
-  <div id="downloadButtons">
-    <button onclick="downloadCSV()">Download as CSV</button>
-    <button onclick="downloadPDF()">Download as PDF</button>
-  </div>
+<div id="downloadButtons" style="display:none;">
+  <button onclick="downloadCSV()">Download CSV</button>
+  <button onclick="downloadPDF()">Download PDF</button>
+</div>
 
-  <details>
-    <summary style="cursor:pointer; font-weight:bold; color:#4CAF50; font-size:1.1rem;">
-      📊 How Calculations Work (click to expand)
-    </summary>
-    <ul style="margin-top:10px;">
-      <li><b>Exact Hours:</b> Bill ÷ (Hourly Wage × (1 - Tax Rate)) → fractional hours needed.</li>
-      <li><b>Rounded Hours:</b> Rounded up to nearest hour.</li>
-      <li><b>Earnings Before Tax:</b> Rounded Hours × Hourly Wage.</li>
-      <li><b>Taxes:</b> Earnings Before Tax × Tax Rate.</li>
-      <li><b>Amount Earned:</b> (Earnings Before Tax - Taxes) + Tips + Bonuses + Commissions.</li>
-      <li><b>Amount Paid:</b> Bill amount.</li>
-      <li><b>Savings:</b> Amount Earned - Bill.</li>
-    </ul>
-  </details>
+<details>
+  <summary style="cursor:pointer; font-weight:bold; color:#4CAF50; font-size:1.1rem;">
+    📊 How Calculations Work
+  </summary>
+  <ul style="margin-top:10px;">
+    <li>NetHourly = Wage × (1 - TaxRate)</li>
+    <li>Hours Needed = ceil(Bill ÷ NetHourly)</li>
+    <li>Earnings Before Tax = RoundedHours × Wage + Tips + Bonuses + Commissions</li>
+    <li>Taxes = Earnings Before Tax × TaxRate</li>
+    <li>Amount Earned = Earnings Before Tax - Taxes</li>
+    <li>Savings = Amount Earned - Bill Amount</li>
+  </ul>
+</details>
 
-  <script>
-    let bills = [];
+<script>
+let bills = [];
 
-    function addBill() {
-      const name = document.getElementById('billName').value;
-      const amount = parseFloat(document.getElementById('bill').value);
+function addBill() {
+  const name = document.getElementById('billName').value.trim();
+  const amount = parseFloat(document.getElementById('bill').value);
+  const tips = parseFloat(document.getElementById('tips').value) || 0;
+  const bonuses = parseFloat(document.getElementById('bonuses').value) || 0;
+  const commissions = parseFloat(document.getElementById('commissions').value) || 0;
 
-      if (!name || isNaN(amount) || amount <= 0) {
-        alert("Please enter a valid nickname and bill amount.");
-        return;
-      }
+  if (!name || isNaN(amount) || amount <= 0) {
+    alert("Please enter a valid nickname and bill amount.");
+    return;
+  }
 
-      bills.push({ name, amount });
-      document.getElementById('billList').innerHTML = bills.map(b => `<li>${b.name}: $${b.amount.toFixed(2)}</li>`).join("");
+  bills.push({ name, amount, tips, bonuses, commissions });
 
-      document.getElementById('billName').value = '';
-      document.getElementById('bill').value = '';
-      document.getElementById('tips').value = '';
-      document.getElementById('bonuses').value = '';
-      document.getElementById('commissions').value = '';
-    }
+  document.getElementById('billList').innerHTML = bills.map(b => 
+    `<li>${b.name}: $${b.amount.toFixed(2)} | Tips: $${b.tips.toFixed(2)}, Bonuses: $${b.bonuses.toFixed(2)}, Commissions: $${b.commissions.toFixed(2)}</li>`
+  ).join("");
 
-    function calculate() {
-      const wage = parseFloat(document.getElementById('wage').value);
-      const taxRate = parseFloat(document.getElementById('taxRate').value) / 100 || 0.22;
-      const tips = parseFloat(document.getElementById('tips').value) || 0;
-      const bonuses = parseFloat(document.getElementById('bonuses').value) || 0;
-      const commissions = parseFloat(document.getElementById('commissions').value) || 0;
+  // Reset input fields
+  document.getElementById('billName').value = '';
+  document.getElementById('bill').value = '';
+  document.getElementById('tips').value = '';
+  document.getElementById('bonuses').value = '';
+  document.getElementById('commissions').value = '';
+}
 
-      if (isNaN(wage) || wage <= 0 || bills.length === 0) {
-        alert("Please enter your wage and add at least one bill.");
-        return;
-      }
+function calculate() {
+  const wage = parseFloat(document.getElementById('wage').value);
+  const taxRate = parseFloat(document.getElementById('taxRate').value)/100 || 0.22;
 
-      let table = `
-        <table>
-          <tr>
-            <th>Bill</th>
-            <th>Bill Amount ($)</th>
-            <th>Hours Needed</th>
-            <th>Earnings Before Tax ($)</th>
-            <th>Tips ($)</th>
-            <th>Bonuses ($)</th>
-            <th>Commissions ($)</th>
-            <th>Taxes ($)</th>
-            <th>Amount Earned ($)</th>
-            <th>Amount Paid ($)</th>
-            <th>Savings ($)</th>
-          </tr>
-      `;
+  if (isNaN(wage) || wage <= 0 || bills.length === 0) {
+    alert("Please enter a valid wage and at least one bill.");
+    return;
+  }
 
-      let totals = { bill:0, hours:0, earnings:0, tips:0, bonuses:0, commissions:0, taxes:0, earned:0, paid:0, savings:0 };
+  let table = `
+    <table>
+      <tr>
+        <th>Bill</th>
+        <th>Bill Amount ($)</th>
+        <th>Hours Needed</th>
+        <th>Earnings Before Tax ($)</th>
+        <th>Tips ($)</th>
+        <th>Bonuses ($)</th>
+        <th>Commissions ($)</th>
+        <th>Taxes ($)</th>
+        <th>Amount Earned ($)</th>
+        <th>Amount Paid ($)</th>
+        <th>Savings ($)</th>
+      </tr>
+  `;
 
-      bills.forEach(bill => {
-        const netHourly = wage * (1 - taxRate);
-        const exactHours = bill.amount / netHourly;
-        const roundedHours = Math.ceil(exactHours);
+  let totals = { bill:0, hours:0, earnings:0, tips:0, bonuses:0, commissions:0, taxes:0, earned:0, paid:0, savings:0 };
 
-        const earningsBeforeTax = roundedHours * wage;
-        const taxes = earningsBeforeTax * taxRate;
+  bills.forEach(bill => {
+    const netHourly = wage * (1 - taxRate);
+    const exactHours = bill.amount / netHourly;
+    const roundedHours = Math.ceil(exactHours);
 
-        // Tips, Bonuses, Commissions untaxed
-        const amountEarned = (earningsBeforeTax - taxes) + tips + bonuses + commissions;
-        const savings = amountEarned - bill.amount;
+    const earningsBeforeTax = roundedHours * wage + bill.tips + bill.bonuses + bill.commissions;
+    const taxes = earningsBeforeTax * taxRate;
+    const amountEarned = earningsBeforeTax - taxes;
+    const savings = amountEarned - bill.amount;
 
-        table += `
-          <tr>
-            <td data-label="Bill">${bill.name}</td>
-            <td data-label="Bill Amount">$${bill.amount.toFixed(2)}</td>
-            <td data-label="Hours Needed">${roundedHours}</td>
-            <td data-label="Earnings Before Tax">$${earningsBeforeTax.toFixed(2)}</td>
-            <td data-label="Tips">$${tips.toFixed(2)}</td>
-            <td data-label="Bonuses">$${bonuses.toFixed(2)}</td>
-            <td data-label="Commissions">$${commissions.toFixed(2)}</td>
-            <td data-label="Taxes">$${taxes.toFixed(2)}</td>
-            <td data-label="Amount Earned">$${amountEarned.toFixed(2)}</td>
-            <td data-label="Amount Paid">$${bill.amount.toFixed(2)}</td>
-            <td data-label="Savings">$${savings.toFixed(2)}</td>
-          </tr>
-        `;
+    table += `
+      <tr>
+        <td>${bill.name}</td>
+        <td>$${bill.amount.toFixed(2)}</td>
+        <td>${roundedHours}</td>
+        <td>$${earningsBeforeTax.toFixed(2)}</td>
+        <td>$${bill.tips.toFixed(2)}</td>
+        <td>$${bill.bonuses.toFixed(2)}</td>
+        <td>$${bill.commissions.toFixed(2)}</td>
+        <td>$${taxes.toFixed(2)}</td>
+        <td>$${amountEarned.toFixed(2)}</td>
+        <td>$${bill.amount.toFixed(2)}</td>
+        <td>$${savings.toFixed(2)}</td>
+      </tr>
+    `;
 
-        totals.bill += bill.amount;
-        totals.hours += roundedHours;
-        totals.earnings += earningsBeforeTax;
-        totals.tips += tips;
-        totals.bonuses += bonuses;
-        totals.commissions += commissions;
-        totals.taxes += taxes;
-        totals.earned += amountEarned;
-        totals.paid += bill.amount;
-        totals.savings += savings;
-      });
+    totals.bill += bill.amount;
+    totals.hours += roundedHours;
+    totals.earnings += earningsBeforeTax;
+    totals.tips += bill.tips;
+    totals.bonuses += bill.bonuses;
+    totals.commissions += bill.commissions;
+    totals.taxes += taxes;
+    totals.earned += amountEarned;
+    totals.paid += bill.amount;
+    totals.savings += savings;
+  });
 
-      table += `
-        <tfoot>
-          <tr>
-            <td><b>Totals</b></td>
-            <td>$${totals.bill.toFixed(2)}</td>
-            <td>${totals.hours}</td>
-            <td>$${totals.earnings.toFixed(2)}</td>
-            <td>$${totals.tips.toFixed(2)}</td>
-            <td>$${totals.bonuses.toFixed(2)}</td>
-            <td>$${totals.commissions.toFixed(2)}</td>
-            <td>$${totals.taxes.toFixed(2)}</td>
-            <td>$${totals.earned.toFixed(2)}</td>
-            <td>$${totals.paid.toFixed(2)}</td>
-            <td>$${totals.savings.toFixed(2)}</td>
-          </tr>
-        </tfoot>
-      </table>`;
+  table += `
+    <tfoot>
+      <tr>
+        <td><b>Totals</b></td>
+        <td>$${totals.bill.toFixed(2)}</td>
+        <td>${totals.hours}</td>
+        <td>$${totals.earnings.toFixed(2)}</td>
+        <td>$${totals.tips.toFixed(2)}</td>
+        <td>$${totals.bonuses.toFixed(2)}</td>
+        <td>$${totals.commissions.toFixed(2)}</td>
+        <td>$${totals.taxes.toFixed(2)}</td>
+        <td>$${totals.earned.toFixed(2)}</td>
+        <td>$${totals.paid.toFixed(2)}</td>
+        <td>$${totals.savings.toFixed(2)}</td>
+      </tr>
+    </tfoot>
+  </table>`;
 
-      document.getElementById('result').innerHTML = table;
-      document.getElementById('downloadButtons').style.display = "block";
-    }
+  document.getElementById('result').innerHTML = table;
+  document.getElementById('downloadButtons').style.display = "block";
+}
 
-    function resetCalculator() {
-      bills = [];
-      document.getElementById('billList').innerHTML = '';
-      document.getElementById('result').innerHTML = '';
-      document.getElementById('downloadButtons').style.display = "none";
-      document.getElementById('wage').value = '';
-      document.getElementById('taxRate').value = 22;
-      document.getElementById('tips').value = '';
-      document.getElementById('bonuses').value = '';
-      document.getElementById('commissions').value = '';
-    }
+function resetCalculator() {
+  bills = [];
+  document.getElementById('billList').innerHTML = '';
+  document.getElementById('result').innerHTML = '';
+  document.getElementById('downloadButtons').style.display = "none";
+  document.getElementById('wage').value = '';
+  document.getElementById('taxRate').value = 22;
+  document.getElementById('tips').value = '';
+  document.getElementById('bonuses').value = '';
+  document.getElementById('commissions').value = '';
+}
 
-    function downloadCSV() {
-      const table = document.querySelector("table");
-      if (!table) return alert("No table to download.");
-      let csv = [];
-      table.querySelectorAll("tr").forEach(row => {
-        csv.push(Array.from(row.querySelectorAll("td, th")).map(c => c.innerText.replace(/,/g,"")).join(","));
-      });
-      const csvFile = new Blob([csv.join("\n")], { type: "text/csv" });
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(csvFile);
-      link.download = `work_hours_report_${new Date().toISOString().slice(0,10)}.csv`;
-      link.click();
-    }
+function downloadCSV() {
+  const table = document.querySelector("table");
+  if (!table) return alert("No table to download.");
+  let csv = [];
+  table.querySelectorAll("tr").forEach(row => {
+    csv.push(Array.from(row.querySelectorAll("td, th")).map(c => c.innerText.replace(/,/g,"")).join(","));
+  });
+  const csvFile = new Blob([csv.join("\n")], { type: "text/csv" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(csvFile);
+  link.download = `work_hours_report_${new Date().toISOString().slice(0,10)}.csv`;
+  link.click();
+}
 
-    function downloadPDF() {
-      const table = document.querySelector("table");
-      if (!table) return alert("No table to download.");
-      const printWindow = window.open('', '', 'height=600,width=1000');
-      printWindow.document.write('<html><head><title>Work Hours Report</title>');
-      printWindow.document.write('<style>body{font-family:Arial,sans-serif;} table { border-collapse: collapse; width: 100%; } th, td { border: 1px solid #ccc; padding: 10px; text-align: center; } th { background: #4CAF50; color: white; } tfoot { font-weight: bold; background: #eee; }</style>');
-      printWindow.document.write('</head><body>');
-      printWindow.document.write(`<h2>Work Hours & Bills Report (${new Date().toLocaleDateString()})</h2>`);
-      printWindow.document.write(table.outerHTML);
-      printWindow.document.write('</body></html>');
-      printWindow.document.close();
-      printWindow.print();
-    }
-  </script>
+function downloadPDF() {
+  const table = document.querySelector("table");
+  if (!table) return alert("No table to download.");
+  const printWindow = window.open('', '', 'height=600,width=1000');
+  printWindow.document.write('<html><head><title>Work Hours Report</title>');
+  printWindow.document.write('<style>body{font-family:Arial,sans-serif;} table { border-collapse: collapse; width: 100%; } th, td { border: 1px solid #ccc; padding: 10px; text-align: center; } th { background: #4CAF50; color: white; } tfoot { font-weight: bold; background: #eee; }</style>');
+  printWindow.document.write('</head><body>');
+  printWindow.document.write(`<h2>Work Hours & Bills Report (${new Date().toLocaleDateString()})</h2>`);
+  printWindow.document.write(table.outerHTML);
+  printWindow.document.write('</body></html>');
+  printWindow.document.close();
+  printWindow.print();
+}
+</script>
 
-  <!-- Footer Credit -->
-  <footer style="text-align:center; margin-top:20px; font-size:0.9rem; color:#555;">
-    Code by <b>Davi Nevae LLC</b> | <a href="https://www.davinevae.com" target="_blank">www.davinevae.com</a>
-  </footer>
+<footer style="text-align:center; margin-top:20px; font-size:0.9rem; color:#555;">
+  Code by <b>Davi Nevae LLC</b> | <a href="https://www.davinevae.com" target="_blank">www.davinevae.com</a>
+</footer>
 
 </body>
 </html>
