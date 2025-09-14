@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Work Hours & Bills Calculator</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; background: #f9f9f9; }
+    h2 { color: #4CAF50; }
+    label { font-weight: bold; margin-top: 10px; display: block; }
+    input { margin: 5px 0 15px; padding: 8px; width: 200px; }
+    button { padding: 10px 15px; margin: 5px; cursor: pointer; border: none; background: #4CAF50; color: white; font-weight: bold; border-radius: 5px; }
+    button:hover { background: #45a049; }
+    table { border-collapse: collapse; width: 100%; margin-top: 20px; background: white; }
+    th, td { border: 1px solid #ccc; padding: 10px; text-align: center; }
+    th { background: #4CAF50; color: white; }
+    tfoot { font-weight: bold; background: #eee; }
+    details { margin-top: 20px; }
+  </style>
+</head>
+<body>
+
+  <h2>Work Hours & Bills Calculator</h2>
+
+  <p><b>Instructions:</b></p>
+  <ol>
+    <li>Enter your <b>hourly wage</b> and <b>tax rate</b> (default is 22%).</li>
+    <li>Add each bill with a nickname and amount.</li>
+    <li>Click <b>Add Bill</b> to save each one. They’ll appear below.</li>
+    <li>Click <b>Calculate</b> to see how many hours you need to work for each bill, taxes, take-home, and savings.</li>
+    <li>Click <b>Reset</b> to start over.</li>
+  </ol>
+
+  <label>Hourly Wage ($):</label>
+  <input type="number" id="wage" placeholder="e.g. 21">
+
+  <label>Tax Rate (%):</label>
+  <input type="number" id="taxRate" placeholder="Default 22" value="22">
+
+  <label>Bill Nickname:</label>
+  <input type="text" id="billName" placeholder="e.g. Rent">
+
+  <label>Bill Amount ($):</label>
+  <input type="number" id="bill" placeholder="e.g. 140">
+
+  <button onclick="addBill()">Add Bill</button>
+  <button onclick="calculate()">Calculate</button>
+  <button onclick="resetCalculator()">Reset</button>
+
+  <h3>Added Bills:</h3>
+  <ul id="billList"></ul>
+
+  <div id="result"></div>
+
+  <details>
+    <summary style="cursor:pointer; font-weight:bold; color:#4CAF50; font-size:1.1rem;">
+      📊 How Calculations Work (click to expand)
+    </summary>
+    <ul style="margin-top:10px;">
+      <li><b>Exact Hours:</b> Bill ÷ (Hourly Wage × (1 - Tax Rate)) → the fractional hours needed to cover the bill.</li>
+      <li><b>Rounded Hours:</b> Always rounded <i>up</i> to the nearest whole number (you can’t work fractions here).</li>
+      <li><b>Earnings Before Tax:</b> Rounded Hours × Hourly Wage.</li>
+      <li><b>Taxes:</b> Earnings Before Tax × Tax Rate.</li>
+      <li><b>Amount Earned:</b> Earnings Before Tax - Taxes (your take-home pay).</li>
+      <li><b>Amount Paid:</b> What goes toward the bill.</li>
+      <li><b>Savings:</b> Amount Earned - Bill → extra money left from rounding up hours.</li>
+    </ul>
+  </details>
+
+  <script>
+    let bills = [];
+
+    function addBill() {
+      const name = document.getElementById('billName').value;
+      const amount = parseFloat(document.getElementById('bill').value);
+
+      if (!name || isNaN(amount) || amount <= 0) {
+        alert("Please enter a valid nickname and bill amount.");
+        return;
+      }
+
+      bills.push({ name, amount });
+      document.getElementById('billList').innerHTML = bills.map(b => `<li>${b.name}: $${b.amount.toFixed(2)}</li>`).join("");
+      document.getElementById('billName').value = '';
+      document.getElementById('bill').value = '';
+    }
+
+    function calculate() {
+      const wage = parseFloat(document.getElementById('wage').value);
+      let taxRate = parseFloat(document.getElementById('taxRate').value) / 100 || 0.22;
+
+      if (isNaN(wage) || wage <= 0 || bills.length === 0) {
+        alert("Please enter your wage and add at least one bill.");
+        return;
+      }
+
+      let table = `
+        <table>
+          <tr>
+            <th>Bill</th>
+            <th>Bill Amount ($)</th>
+            <th>Hours Needed</th>
+            <th>Earnings Before Tax ($)</th>
+            <th>Taxes ($)</th>
+            <th>Amount Earned ($)</th>
+            <th>Amount Paid ($)</th>
+            <th>Savings ($)</th>
+          </tr>
+      `;
+
+      let totals = { bill: 0, hours: 0, earnings: 0, taxes: 0, earned: 0, paid: 0, savings: 0 };
+
+      bills.forEach(bill => {
+        let netHourly = wage * (1 - taxRate);
+        let exactHours = bill.amount / netHourly;
+        let roundedHours = Math.ceil(exactHours);
+
+        let earningsBeforeTax = roundedHours * wage;
+        let taxes = earningsBeforeTax * taxRate;
+        let amountEarned = earningsBeforeTax - taxes;
+        let savings = amountEarned - bill.amount;
+
+        table += `
+          <tr>
+            <td>${bill.name}</td>
+            <td>$${bill.amount.toFixed(2)}</td>
+            <td>${roundedHours}</td>
+            <td>$${earningsBeforeTax.toFixed(2)}</td>
+            <td>$${taxes.toFixed(2)}</td>
+            <td>$${amountEarned.toFixed(2)}</td>
+            <td>$${bill.amount.toFixed(2)}</td>
+            <td>$${savings.toFixed(2)}</td>
+          </tr>
+        `;
+
+        totals.bill += bill.amount;
+        totals.hours += roundedHours;
+        totals.earnings += earningsBeforeTax;
+        totals.taxes += taxes;
+        totals.earned += amountEarned;
+        totals.paid += bill.amount;
+        totals.savings += savings;
+      });
+
+      table += `
+        <tfoot>
+          <tr>
+            <td><b>Totals</b></td>
+            <td>$${totals.bill.toFixed(2)}</td>
+            <td>${totals.hours}</td>
+            <td>$${totals.earnings.toFixed(2)}</td>
+            <td>$${totals.taxes.toFixed(2)}</td>
+            <td>$${totals.earned.toFixed(2)}</td>
+            <td>$${totals.paid.toFixed(2)}</td>
+            <td>$${totals.savings.toFixed(2)}</td>
+          </tr>
+        </tfoot>
+      </table>`;
+
+      document.getElementById('result').innerHTML = table;
+    }
+
+    function resetCalculator() {
+      bills = [];
+      document.getElementById('billList').innerHTML = '';
+      document.getElementById('result').innerHTML = '';
+      document.getElementById('wage').value = '';
+      document.getElementById('taxRate').value = 22;
+    }
+  </script>
+
+</body>
+</html>
