@@ -5,18 +5,29 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Work Hours & Bills Calculator</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 20px; background: #f9f9f9; }
-    h2 { color: #4CAF50; }
+    body { font-family: Arial, sans-serif; margin: 10px; background: #f9f9f9; }
+    h2 { color: #4CAF50; text-align: center; }
     label { font-weight: bold; margin-top: 10px; display: block; }
-    input { margin: 5px 0 15px; padding: 8px; width: 200px; }
-    button { padding: 10px 15px; margin: 5px; cursor: pointer; border: none; background: #4CAF50; color: white; font-weight: bold; border-radius: 5px; }
+    input { margin: 5px 0 15px; padding: 8px; width: 100%; max-width: 250px; box-sizing: border-box; }
+    button { padding: 10px 15px; margin: 5px 2px; cursor: pointer; border: none; background: #4CAF50; color: white; font-weight: bold; border-radius: 5px; }
     button:hover { background: #45a049; }
-    table { border-collapse: collapse; width: 100%; margin-top: 20px; background: white; }
-    th, td { border: 1px solid #ccc; padding: 10px; text-align: center; }
+    #downloadButtons { margin-top: 15px; display: none; }
+    ul#billList { padding-left: 15px; }
+    details { margin-top: 20px; }
+
+    table { border-collapse: collapse; width: 100%; margin-top: 20px; background: white; overflow-x: auto; display: block; }
+    th, td { border: 1px solid #ccc; padding: 10px; text-align: center; min-width: 100px; }
     th { background: #4CAF50; color: white; }
     tfoot { font-weight: bold; background: #eee; }
-    details { margin-top: 20px; }
-    #downloadButtons { margin-top: 15px; display: none; }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      table, thead, tbody, th, td, tr { display: block; }
+      tr { margin-bottom: 15px; border-bottom: 2px solid #ddd; }
+      th { text-align: left; background: #4CAF50; color: white; padding-left: 10px; }
+      td { text-align: left; padding-left: 10px; border: none; border-bottom: 1px solid #ccc; }
+      td::before { content: attr(data-label); font-weight: bold; display: inline-block; width: 120px; }
+    }
   </style>
 </head>
 <body>
@@ -28,7 +39,7 @@
     <li>Enter your <b>hourly wage</b> and <b>tax rate</b> (default is 22%).</li>
     <li>Add optional income fields: Tips, Bonuses, Commissions (leave blank if none).</li>
     <li>Add each bill with a nickname and amount.</li>
-    <li>Click <b>Add Bill</b> to save each one.</li>
+    <li>Click <b>Add Bill</b> to save each one. Optional income fields will reset for the next bill.</li>
     <li>Click <b>Calculate</b> to see hours needed, taxes, take-home pay, and savings, including optional income.</li>
     <li>Click <b>Reset</b> to start over.</li>
   </ol>
@@ -98,8 +109,15 @@
 
       bills.push({ name, amount });
       document.getElementById('billList').innerHTML = bills.map(b => `<li>${b.name}: $${b.amount.toFixed(2)}</li>`).join("");
+
+      // Reset bill input fields
       document.getElementById('billName').value = '';
       document.getElementById('bill').value = '';
+
+      // Reset optional income fields for next bill
+      document.getElementById('tips').value = '';
+      document.getElementById('bonuses').value = '';
+      document.getElementById('commissions').value = '';
     }
 
     function calculate() {
@@ -146,17 +164,17 @@
 
         table += `
           <tr>
-            <td>${bill.name}</td>
-            <td>$${bill.amount.toFixed(2)}</td>
-            <td>${roundedHours}</td>
-            <td>$${earningsBeforeTax.toFixed(2)}</td>
-            <td>$${tips.toFixed(2)}</td>
-            <td>$${bonuses.toFixed(2)}</td>
-            <td>$${commissions.toFixed(2)}</td>
-            <td>$${taxes.toFixed(2)}</td>
-            <td>$${amountEarned.toFixed(2)}</td>
-            <td>$${bill.amount.toFixed(2)}</td>
-            <td>$${savings.toFixed(2)}</td>
+            <td data-label="Bill">${bill.name}</td>
+            <td data-label="Bill Amount">$${bill.amount.toFixed(2)}</td>
+            <td data-label="Hours Needed">${roundedHours}</td>
+            <td data-label="Earnings Before Tax">$${earningsBeforeTax.toFixed(2)}</td>
+            <td data-label="Tips">$${tips.toFixed(2)}</td>
+            <td data-label="Bonuses">$${bonuses.toFixed(2)}</td>
+            <td data-label="Commissions">$${commissions.toFixed(2)}</td>
+            <td data-label="Taxes">$${taxes.toFixed(2)}</td>
+            <td data-label="Amount Earned">$${amountEarned.toFixed(2)}</td>
+            <td data-label="Amount Paid">$${bill.amount.toFixed(2)}</td>
+            <td data-label="Savings">$${savings.toFixed(2)}</td>
           </tr>
         `;
 
@@ -244,7 +262,4 @@
       printWindow.document.close();
       printWindow.print();
     }
-  </script>
-
-</body>
-</html>
+  </
