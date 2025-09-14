@@ -100,7 +100,6 @@ function addBill() {
     `<li>${b.name}: $${b.amount.toFixed(2)} | Tips: $${b.tips.toFixed(2)}, Bonuses: $${b.bonuses.toFixed(2)}, Commissions: $${b.commissions.toFixed(2)}</li>`
   ).join("");
 
-  // Reset input fields
   document.getElementById('billName').value = '';
   document.getElementById('bill').value = '';
   document.getElementById('tips').value = '';
@@ -235,7 +234,6 @@ function downloadPDF() {
   printWindow.document.write('</body></html>');
   printWindow.document.close();
   printWindow.print();
-}
 }
 </script>
 
