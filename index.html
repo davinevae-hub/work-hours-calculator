@@ -20,7 +20,6 @@
     th { background: #4CAF50; color: white; }
     tfoot { font-weight: bold; background: #eee; }
 
-    /* Responsive adjustments */
     @media (max-width: 768px) {
       table, thead, tbody, th, td, tr { display: block; }
       tr { margin-bottom: 15px; border-bottom: 2px solid #ddd; }
@@ -36,11 +35,11 @@
 
   <p><b>Instructions:</b></p>
   <ol>
-    <li>Enter your <b>hourly wage</b> and <b>tax rate</b> (default is 22%).</li>
-    <li>Add optional income fields: Tips, Bonuses, Commissions (leave blank if none).</li>
+    <li>Enter your <b>hourly wage</b> and <b>tax rate</b> (default 22%).</li>
+    <li>Add optional income fields: Tips, Bonuses, Commissions (leave blank if none). These are <b>not taxed</b>.</li>
     <li>Add each bill with a nickname and amount.</li>
-    <li>Click <b>Add Bill</b> to save each one. Optional income fields will reset for the next bill.</li>
-    <li>Click <b>Calculate</b> to see hours needed, taxes, take-home pay, and savings, including optional income.</li>
+    <li>Click <b>Add Bill</b>. Optional income fields reset for the next bill.</li>
+    <li>Click <b>Calculate</b> to see hours needed, taxes, take-home pay, and savings.</li>
     <li>Click <b>Reset</b> to start over.</li>
   </ol>
 
@@ -87,9 +86,8 @@
       <li><b>Exact Hours:</b> Bill ÷ (Hourly Wage × (1 - Tax Rate)) → fractional hours needed.</li>
       <li><b>Rounded Hours:</b> Rounded up to nearest hour.</li>
       <li><b>Earnings Before Tax:</b> Rounded Hours × Hourly Wage.</li>
-      <li><b>Optional Income:</b> Tips + Bonuses + Commissions are added before tax calculation.</li>
-      <li><b>Taxes:</b> (Earnings Before Tax + Optional Income) × Tax Rate.</li>
-      <li><b>Amount Earned:</b> Earnings + Optional Income - Taxes.</li>
+      <li><b>Taxes:</b> Earnings Before Tax × Tax Rate.</li>
+      <li><b>Amount Earned:</b> (Earnings Before Tax - Taxes) + Tips + Bonuses + Commissions.</li>
       <li><b>Amount Paid:</b> Bill amount.</li>
       <li><b>Savings:</b> Amount Earned - Bill.</li>
     </ul>
@@ -110,11 +108,8 @@
       bills.push({ name, amount });
       document.getElementById('billList').innerHTML = bills.map(b => `<li>${b.name}: $${b.amount.toFixed(2)}</li>`).join("");
 
-      // Reset bill input fields
       document.getElementById('billName').value = '';
       document.getElementById('bill').value = '';
-
-      // Reset optional income fields for next bill
       document.getElementById('tips').value = '';
       document.getElementById('bonuses').value = '';
       document.getElementById('commissions').value = '';
@@ -149,7 +144,7 @@
           </tr>
       `;
 
-      let totals = { bill: 0, hours: 0, earnings: 0, tips: 0, bonuses: 0, commissions: 0, taxes: 0, earned: 0, paid: 0, savings: 0 };
+      let totals = { bill:0, hours:0, earnings:0, tips:0, bonuses:0, commissions:0, taxes:0, earned:0, paid:0, savings:0 };
 
       bills.forEach(bill => {
         const netHourly = wage * (1 - taxRate);
@@ -157,9 +152,10 @@
         const roundedHours = Math.ceil(exactHours);
 
         const earningsBeforeTax = roundedHours * wage;
-        const totalIncome = earningsBeforeTax + tips + bonuses + commissions;
-        const taxes = totalIncome * taxRate;
-        const amountEarned = totalIncome - taxes;
+        const taxes = earningsBeforeTax * taxRate;
+
+        // Tips, Bonuses, Commissions untaxed
+        const amountEarned = (earningsBeforeTax - taxes) + tips + bonuses + commissions;
         const savings = amountEarned - bill.amount;
 
         table += `
@@ -227,20 +223,10 @@
     function downloadCSV() {
       const table = document.querySelector("table");
       if (!table) return alert("No table to download.");
-
       let csv = [];
-      const rows = table.querySelectorAll("tr");
-
-      rows.forEach(row => {
-        const cols = row.querySelectorAll("td, th");
-        const rowData = [];
-        cols.forEach(col => {
-          let text = col.innerText.replace(/,/g, "");
-          rowData.push(text);
-        });
-        csv.push(rowData.join(","));
+      table.querySelectorAll("tr").forEach(row => {
+        csv.push(Array.from(row.querySelectorAll("td, th")).map(c => c.innerText.replace(/,/g,"")).join(","));
       });
-
       const csvFile = new Blob([csv.join("\n")], { type: "text/csv" });
       const link = document.createElement("a");
       link.href = URL.createObjectURL(csvFile);
@@ -251,7 +237,6 @@
     function downloadPDF() {
       const table = document.querySelector("table");
       if (!table) return alert("No table to download.");
-
       const printWindow = window.open('', '', 'height=600,width=1000');
       printWindow.document.write('<html><head><title>Work Hours Report</title>');
       printWindow.document.write('<style>body{font-family:Arial,sans-serif;} table { border-collapse: collapse; width: 100%; } th, td { border: 1px solid #ccc; padding: 10px; text-align: center; } th { background: #4CAF50; color: white; } tfoot { font-weight: bold; background: #eee; }</style>');
@@ -262,4 +247,12 @@
       printWindow.document.close();
       printWindow.print();
     }
-  </
+  </script>
+
+  <!-- Footer Credit -->
+  <footer style="text-align:center; margin-top:20px; font-size:0.9rem; color:#555;">
+    Code by <b>Davi Nevae LLC</b> | <a href="https://www.davinevae.com" target="_blank">www.davinevae.com</a>
+  </footer>
+
+</body>
+</html>
