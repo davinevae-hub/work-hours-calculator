@@ -27,45 +27,31 @@
 <p><b>Instructions:</b></p>
 <ol>
   <li>Enter your <b>hourly wage</b> and optional <b>tax rate</b> (default 22%).</li>
-  <li>Enter optional <b>Other Income</b> (Tips, Bonuses, Commissions).</li>
-  <li>Add <b>Bills</b> separately.</li>
-  <li>Click <b>Calculate</b> to see hours needed, taxes, and savings.</li>
+  <li>Add <b>Bills</b> with a nickname and amount.</li>
+  <li>Click <b>Calculate</b> to see hours needed, exact hours, taxes, and savings.</li>
   <li>Click <b>Reset</b> to start over.</li>
-  <li>You can download results as <b>CSV</b> or <b>PDF</b>.</li>
 </ol>
-<!-- Place How Calculations Work section here -->
+
 <div class="section">
   <h3>How Calculations Work</h3>
   <ul>
-    <li><b>Hours Needed:</b> Rounded up from exact hours = <i>Bill Amount ÷ (Hourly Wage × (1 - Tax Rate))</i></li>
-    <li><b>Wages Earned:</b> Rounded hours × Hourly Wage</li>
-    <li><b>Other Income:</b> Sum of Tips + Bonuses + Commissions entered (optional)</li>
-    <li><b>Earnings Before Tax:</b> Wages Earned + Other Income</li>
+    <li><b>Exact Hours:</b> Bill Amount ÷ Hourly Wage</li>
+    <li><b>Hours Needed:</b> Rounded up to next whole hour using <b>Math.ceil</b></li>
+    <li><b>Wages Earned:</b> Hours Needed × Hourly Wage</li>
+    <li><b>Earnings Before Tax:</b> Same as Wages Earned</li>
     <li><b>Taxes:</b> Earnings Before Tax × Tax Rate</li>
-    <li><b>Amount Paid:</b> The bill amount entered</li>
+    <li><b>Amount Paid:</b> The bill amount</li>
     <li><b>Savings:</b> Earnings Before Tax - Taxes - Amount Paid</li>
     <li><b>Totals Row:</b> Sums all bill rows for each column</li>
   </ul>
 </div>
+
 <div class="section">
   <label>Hourly Wage ($):</label>
   <input type="number" id="wage" placeholder="e.g. 21">
 
   <label>Tax Rate (%):</label>
   <input type="number" id="taxRate" placeholder="Default 22" value="22">
-
-  <h3>Other Income (Optional)</h3>
-  <label>Tips ($):</label>
-  <input type="number" id="tips" placeholder="Optional">
-
-  <label>Bonuses ($):</label>
-  <input type="number" id="bonuses" placeholder="Optional">
-
-  <label>Commissions ($):</label>
-  <input type="number" id="commissions" placeholder="Optional">
-
-  <button onclick="storeOtherIncome()">Save Other Income</button>
-  <p id="incomeSaved" style="color:green;"></p>
 </div>
 
 <div class="section">
@@ -89,24 +75,8 @@
 
 <div id="result" class="table-container"></div>
 
-<div id="downloadButtons" style="display:none;">
-  <button onclick="downloadCSV()">Download CSV</button>
-  <button onclick="downloadPDF()">Download PDF</button>
-</div>
-
 <script>
 let bills = [];
-let otherIncome = { tips:0, bonuses:0, commissions:0 };
-
-function storeOtherIncome() {
-  otherIncome.tips = parseFloat(document.getElementById('tips').value) || 0;
-  otherIncome.bonuses = parseFloat(document.getElementById('bonuses').value) || 0;
-  otherIncome.commissions = parseFloat(document.getElementById('commissions').value) || 0;
-  document.getElementById('incomeSaved').textContent = `Other Income Saved: $${(otherIncome.tips+otherIncome.bonuses+otherIncome.commissions).toFixed(2)}`;
-  document.getElementById('tips').value = '';
-  document.getElementById('bonuses').value = '';
-  document.getElementById('commissions').value = '';
-}
 
 function addBill() {
   const name = document.getElementById('billName').value.trim();
@@ -129,16 +99,14 @@ function calculate() {
   if (isNaN(wage) || wage <= 0) { alert("Please enter a valid wage."); return; }
   if (bills.length === 0) { alert("Please add at least one bill."); return; }
 
-  const other = otherIncome.tips + otherIncome.bonuses + otherIncome.commissions;
-
   let table = `
     <table>
       <tr>
         <th>Item</th>
         <th>Bill Amount ($)</th>
+        <th>Exact Hours</th>
         <th>Hours Needed</th>
         <th>Wages Earned ($)</th>
-        <th>Other Income ($)</th>
         <th>Earnings Before Tax ($)</th>
         <th>Taxes ($)</th>
         <th>Amount Paid ($)</th>
@@ -146,14 +114,13 @@ function calculate() {
       </tr>
   `;
 
-  let totals = { bill:0, hours:0, wages:0, other:0, earnings:0, taxes:0, paid:0, savings:0 };
+  let totals = { bill:0, exactHours:0, hours:0, wages:0, earnings:0, taxes:0, paid:0, savings:0 };
 
   bills.forEach(bill => {
-    const netHourly = wage * (1 - taxRate);
-    const exactHours = bill.amount / netHourly;
-    const roundedHours = Math.ceil(exactHours);
+    const exactHours = bill.amount / wage; // simplified formula
+    const roundedHours = Math.ceil(exactHours); // round up for practical hours
     const wagesEarned = roundedHours * wage;
-    const earningsBeforeTax = wagesEarned + other;
+    const earningsBeforeTax = wagesEarned;
     const taxes = earningsBeforeTax * taxRate;
     const amountPaid = bill.amount;
     const savings = earningsBeforeTax - taxes - amountPaid;
@@ -161,9 +128,9 @@ function calculate() {
     table += `<tr>
       <td>${bill.name}</td>
       <td>$${bill.amount.toFixed(2)}</td>
+      <td>${exactHours.toFixed(2)}</td>
       <td>${roundedHours}</td>
       <td>$${wagesEarned.toFixed(2)}</td>
-      <td>$${other.toFixed(2)}</td>
       <td>$${earningsBeforeTax.toFixed(2)}</td>
       <td>$${taxes.toFixed(2)}</td>
       <td>$${amountPaid.toFixed(2)}</td>
@@ -171,9 +138,9 @@ function calculate() {
     </tr>`;
 
     totals.bill += bill.amount;
+    totals.exactHours += exactHours;
     totals.hours += roundedHours;
     totals.wages += wagesEarned;
-    totals.other += other;
     totals.earnings += earningsBeforeTax;
     totals.taxes += taxes;
     totals.paid += amountPaid;
@@ -183,9 +150,9 @@ function calculate() {
   table += `<tfoot><tr>
     <td><b>Totals</b></td>
     <td>$${totals.bill.toFixed(2)}</td>
+    <td>${totals.exactHours.toFixed(2)}</td>
     <td>${totals.hours}</td>
     <td>$${totals.wages.toFixed(2)}</td>
-    <td>$${totals.other.toFixed(2)}</td>
     <td>$${totals.earnings.toFixed(2)}</td>
     <td>$${totals.taxes.toFixed(2)}</td>
     <td>$${totals.paid.toFixed(2)}</td>
@@ -193,31 +160,22 @@ function calculate() {
   </tr></tfoot></table>`;
 
   document.getElementById('result').innerHTML = table;
-  document.getElementById('downloadButtons').style.display = "block";
 }
 
 function resetCalculator() {
   bills = [];
-  otherIncome = { tips:0, bonuses:0, commissions:0 };
   document.getElementById('billList').innerHTML = '';
   document.getElementById('result').innerHTML = '';
-  document.getElementById('downloadButtons').style.display = "none";
   document.getElementById('wage').value = '';
   document.getElementById('taxRate').value = 22;
-  document.getElementById('tips').value = '';
-  document.getElementById('bonuses').value = '';
-  document.getElementById('commissions').value = '';
-  document.getElementById('incomeSaved').textContent = '';
   document.getElementById('billName').value = '';
   document.getElementById('bill').value = '';
 }
-
-// CSV and PDF export functions can be added here if desired
 </script>
 
 <footer style="text-align:center; margin-top:20px; font-size:0.9rem; color:#555;">
-  Code by <b>Davi Nevae LLC</b> | <a href="https://www.davinevae.com" target="_blank">www.davinevae.com</a>
-</footer
+  Code by <b>Davi Nevae LLC</b> | <a href="https://www.davinevae.com" target="_blank" style="color:#4CAF50; text-decoration:none;">Visit Our Website</a>
+</footer>
 
 </body>
 </html>
