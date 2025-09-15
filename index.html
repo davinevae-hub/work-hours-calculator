@@ -33,7 +33,20 @@
   <li>Click <b>Reset</b> to start over.</li>
   <li>You can download results as <b>CSV</b> or <b>PDF</b>.</li>
 </ol>
-
+<!-- Place How Calculations Work section here -->
+<div class="section">
+  <h3>How Calculations Work</h3>
+  <ul>
+    <li><b>Hours Needed:</b> Rounded up from exact hours = <i>Bill Amount ÷ (Hourly Wage × (1 - Tax Rate))</i></li>
+    <li><b>Wages Earned:</b> Rounded hours × Hourly Wage</li>
+    <li><b>Other Income:</b> Sum of Tips + Bonuses + Commissions entered (optional)</li>
+    <li><b>Earnings Before Tax:</b> Wages Earned + Other Income</li>
+    <li><b>Taxes:</b> Earnings Before Tax × Tax Rate</li>
+    <li><b>Amount Paid:</b> The bill amount entered</li>
+    <li><b>Savings:</b> Earnings Before Tax - Taxes - Amount Paid</li>
+    <li><b>Totals Row:</b> Sums all bill rows for each column</li>
+  </ul>
+</div>
 <div class="section">
   <label>Hourly Wage ($):</label>
   <input type="number" id="wage" placeholder="e.g. 21">
