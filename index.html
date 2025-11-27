@@ -1,209 +1,746 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Work Hours & Bills Calculator</title>
+  <meta charset="utf-8" />
+  <title>Work Hours & Time Tracker — Davi Nevae</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+
+  <!-- jsPDF CDN for PDF export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
   <style>
-    body { font-family: Arial, sans-serif; margin: 20px; background: #f9f9f9; }
-    h2 { color: #4CAF50; }
-    label { font-weight: bold; margin-top: 10px; display: block; }
-    input { margin: 5px 0 15px; padding: 8px; width: 200px; }
-    button { padding: 10px 15px; margin: 5px; cursor: pointer; border: none; background: #4CAF50; color: white; font-weight: bold; border-radius: 5px; }
-    button:hover { background: #45a049; }
-    table { border-collapse: collapse; width: 100%; margin-top: 20px; background: white; }
-    th, td { border: 1px solid #ccc; padding: 10px; text-align: center; }
-    th { background: #4CAF50; color: white; }
-    tfoot { font-weight: bold; background: #eee; }
-    details { margin-top: 20px; }
-    #downloadButtons { margin-top: 15px; display: none; }
+    :root{
+      --bg: #f4f6fb;
+      --card:#ffffff;
+      --muted:#6b7280;
+      --accent:#2563eb;
+      --accent2:#0ea5a4;
+      --danger:#ef4444;
+      --radius:10px;
+      font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      color-scheme: light;
+    }
+    [data-theme="dark"]{
+      --bg:#0b1220;
+      --card:#071025;
+      --muted:#9aa4b2;
+      --accent:#3b82f6;
+      --accent2:#14b8a6;
+      --danger:#fb7185;
+      color-scheme: dark;
+    }
+
+    body{margin:0;background:linear-gradient(180deg,var(--bg),#ffffff);padding:18px;}
+
+    .app{
+      max-width:1100px;margin:0 auto;background:var(--card);
+      border-radius:var(--radius);box-shadow:0 10px 30px rgba(0,0,0,0.1);overflow:hidden;
+    }
+
+    header{
+      display:flex;align-items:center;gap:12px;padding:18px;
+      border-bottom:1px solid rgba(0,0,0,0.06);
+      background:linear-gradient(90deg,transparent,rgba(0,0,0,0.02));
+    }
+
+    .brand h1{margin:0;font-size:18px;}
+    .brand p{margin:0;color:var(--muted);font-size:12px;}
+
+    .controls{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;}
+
+    .btn{
+      padding:8px 12px;border-radius:8px;border:0;
+      cursor:pointer;font-weight:600;background:var(--accent);color:#fff;
+    }
+    .btn.secondary{background:transparent;color:var(--accent);border:1px solid rgba(37,99,235,0.25);}
+    .btn.ghost{background:transparent;color:var(--muted);border:1px dashed rgba(0,0,0,0.15);}
+    .btn.warn{background:var(--danger);color:#fff;}
+
+    main{display:grid;grid-template-columns:380px 1fr;gap:18px;padding:18px;}
+    @media(max-width:900px){main{grid-template-columns:1fr;}}
+
+    .panel{background:rgba(255,255,255,0.5);padding:14px;border-radius:10px;}
+
+    label{font-size:13px;margin-bottom:4px;display:block;color:var(--muted);}
+
+    input,textarea,select{
+      width:100%;padding:10px;font-size:14px;
+      border-radius:8px;border:1px solid rgba(0,0,0,0.08);
+      margin-bottom:10px;background:transparent;color:inherit;
+    }
+
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+
+    .timer{display:flex;gap:8px;align-items:center;margin:10px 0;}
+    .small{font-size:12px;color:var(--muted);}
+
+    .summary-card{padding:12px;border-radius:8px;background:rgba(0,0,0,0.03);margin-top:12px;}
+
+    .right{display:flex;flex-direction:column;gap:12px;}
+
+    .table-wrap{overflow-x:auto;background:transparent;padding:8px;}
+    table{width:100%;border-collapse:collapse;font-size:13px;}
+    th,td{padding:10px;border-bottom:1px solid rgba(0,0,0,0.06);text-align:left;}
+    th{font-weight:700;font-size:12px;color:var(--muted);}
+
+    footer{padding:12px;border-top:1px solid rgba(0,0,0,0.06);display:flex;justify-content:space-between;}
+    .chip{
+      padding:6px 10px;border-radius:999px;background:rgba(37,99,235,0.1);
+      color:var(--accent);font-weight:600;font-size:13px;
+    }
+
+    /* Modal */
+    .modal-backdrop{
+      position:fixed;inset:0;background:rgba(0,0,0,0.35);
+      display:none;align-items:center;justify-content:center;z-index:50;
+    }
+    .modal{background:var(--card);padding:14px;border-radius:10px;width:94%;max-width:700px;}
   </style>
 </head>
 <body>
 
-  <h2>Work Hours & Bills Calculator</h2>
+<div class="app" id="app" data-theme="light">
 
-  <p><b>Instructions:</b></p>
-  <ol>
-    <li>Enter your <b>hourly wage</b> and <b>tax rate</b> (default is 22%).</li>
-    <li>Add each bill with a nickname and amount.</li>
-    <li>Click <b>Add Bill</b> to save each one. They’ll appear below.</li>
-    <li>Click <b>Calculate</b> to see how many hours you need to work for each bill, taxes, take-home, and savings.</li>
-    <li>Click <b>Reset</b> to start over.</li>
-  </ol>
+  <!-- HEADER -->
+  <header>
+    <div class="brand">
+      <h1>Work Hours & Time Tracker</h1>
+      <p>Fast • Private • Exportable — Built by Davi Nevae LLC</p>
+    </div>
 
-  <label>Hourly Wage ($):</label>
-  <input type="number" id="wage" placeholder="e.g. 21">
+    <div class="controls">
+      <button id="toggleTheme" class="btn secondary">Dark</button>
+      <button id="generateLink" class="btn secondary">Share</button>
+      <button id="importCsv" class="btn ghost">Import CSV</button>
+      <button id="exportCsv" class="btn">Export CSV</button>
+      <button id="exportPdf" class="btn">Export PDF</button>
+    </div>
+  </header>
 
-  <label>Tax Rate (%):</label>
-  <input type="number" id="taxRate" placeholder="Default 22" value="22">
+  <!-- MAIN -->
+  <main>
 
-  <label>Bill Nickname:</label>
-  <input type="text" id="billName" placeholder="e.g. Rent">
+    <!-- LEFT PANEL -->
+    <aside class="panel">
 
-  <label>Bill Amount ($):</label>
-  <input type="number" id="bill" placeholder="e.g. 140">
+      <label for="date">Date</label>
+      <input id="date" type="date" />
 
-  <button onclick="addBill()">Add Bill</button>
-  <button onclick="calculate()">Calculate</button>
-  <button onclick="resetCalculator()">Reset</button>
+      <div class="grid2">
+        <div>
+          <label for="start">Start time</label>
+          <input id="start" type="time" />
+        </div>
+        <div>
+          <label for="end">End time</label>
+          <input id="end" type="time" />
+        </div>
+      </div>
 
-  <h3>Added Bills:</h3>
-  <ul id="billList"></ul>
+      <label for="break">Break minutes</label>
+      <input id="break" type="number" value="0" />
 
-  <div id="result"></div>
+      <label for="rate">Hourly rate ($)</label>
+      <input id="rate" type="number" step="0.01" />
 
-  <div id="downloadButtons">
-    <button onclick="downloadCSV()">Download as CSV</button>
-    <button onclick="downloadPDF()">Download as PDF</button>
+      <label for="tax">Tax rate (%)</label>
+      <input id="tax" type="number" value="22" />
+
+      <label for="tag">Client / Tag</label>
+      <input id="tag" type="text" />
+
+      <label for="notes">Notes</label>
+      <textarea id="notes" rows="2"></textarea>
+
+      <div class="timer">
+        <button id="startTimer" class="btn">Start</button>
+        <button id="stopTimer" class="btn secondary" disabled>Stop</button>
+        <div id="liveTimer" class="small">Timer inactive</div>
+      </div>
+
+      <div class="grid2">
+        <button id="calcSave" class="btn">Save Entry</button>
+        <button id="clearForm" class="btn secondary">Clear</button>
+      </div>
+
+      <div id="instantSummary" class="summary-card" style="display:none;">
+        <strong>Session:</strong> <span id="sessionText"></span><br/>
+        <span class="small">Duration: <span id="durationText"></span> — Earnings: <span id="earningsText"></span></span>
+      </div>
+
+    </aside>
+
+    <!-- RIGHT PANEL -->
+    <section class="right">
+
+      <!-- HISTORY CONTROL BAR -->
+      <div class="panel">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <strong>History</strong><br/>
+            <span class="small">Local entries</span>
+          </div>
+
+          <div style="display:flex;gap:8px;">
+            <button id="clearHistory" class="btn ghost">Clear</button>
+            <button id="printSummary" class="btn secondary">Print</button>
+          </div>
+        </div>
+
+        <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
+          <select id="filterRange">
+            <option value="all">All time</option>
+            <option value="7">Last 7 days</option>
+            <option value="30">Last 30 days</option>
+            <option value="week">This week</option>
+            <option value="month">This month</option>
+          </select>
+
+          <select id="groupBy">
+            <option value="none">Group: None</option>
+            <option value="day">By Day</option>
+            <option value="week">By Week</option>
+            <option value="month">By Month</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- TABLE -->
+      <div class="panel table-wrap">
+        <table id="historyTable">
+          <thead>
+            <tr>
+              <th>Date</th><th>Start</th><th>End</th><th>Break</th>
+              <th>Hours</th><th>Rate</th><th>Earnings</th>
+              <th>Tag</th><th>Notes</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="historyBody"></tbody>
+        </table>
+      </div>
+
+      <!-- TOTALS + EXPORTS -->
+      <div class="panel">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div class="chip" id="totalHours">Total: 0h</div>
+          <div class="chip" id="totalEarnings">$0.00</div>
+          <span class="small">Entries: <span id="entryCount">0</span></span>
+        </div>
+
+        <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
+          <button id="exportSummaryCsv" class="btn">Export Summary CSV</button>
+          <button id="downloadExcel" class="btn secondary">Excel CSV</button>
+          <button id="exportPdfEntries" class="btn secondary">Entries PDF</button>
+        </div>
+
+        <div style="margin-top:16px;">
+          <strong style="font-size:14px;">Weekly / Monthly Summary</strong>
+          <div id="summaries" class="small" style="margin-top:8px;color:var(--muted);"></div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <span class="small">Built by Davi Nevae LLC</span>
+    <span class="small">Storage key: dnw_master_v3</span>
+  </footer>
+
+</div>
+
+<!-- EDIT MODAL -->
+<div id="modal" class="modal-backdrop">
+  <div class="modal">
+    <h3>Edit Entry</h3>
+
+    <div class="grid2">
+      <div>
+        <label>Date</label>
+        <input id="m_date" type="date" />
+      </div>
+      <div>
+        <label>Start</label>
+        <input id="m_start" type="time" />
+      </div>
+      <div>
+        <label>End</label>
+        <input id="m_end" type="time" />
+      </div>
+      <div>
+        <label>Break</label>
+        <input id="m_break" type="number" />
+      </div>
+      <div>
+        <label>Rate</label>
+        <input id="m_rate" type="number" step="0.01" />
+      </div>
+      <div>
+        <label>Tag</label>
+        <input id="m_tag" type="text" />
+      </div>
+    </div>
+
+    <label>Notes</label>
+    <textarea id="m_notes" rows="3"></textarea>
+
+    <div style="margin-top:12px;display:flex;justify-content:flex-end;gap:8px;">
+      <button id="modalCancel" class="btn secondary">Cancel</button>
+      <button id="modalSave" class="btn">Save</button>
+    </div>
   </div>
+</div>
 
-  <details>
-    <summary style="cursor:pointer; font-weight:bold; color:#4CAF50; font-size:1.1rem;">
-      📊 How Calculations Work (click to expand)
-    </summary>
-    <ul style="margin-top:10px;">
-      <li><b>Exact Hours:</b> Bill ÷ (Hourly Wage × (1 - Tax Rate)) → the fractional hours needed to cover the bill.</li>
-      <li><b>Rounded Hours:</b> Always rounded <i>up</i> to the nearest whole number (you can’t work fractions here).</li>
-      <li><b>Earnings Before Tax:</b> Rounded Hours × Hourly Wage.</li>
-      <li><b>Taxes:</b> Earnings Before Tax × Tax Rate.</li>
-      <li><b>Amount Earned:</b> Earnings Before Tax - Taxes (your take-home pay).</li>
-      <li><b>Amount Paid:</b> What goes toward the bill.</li>
-      <li><b>Savings:</b> Amount Earned - Bill → extra money left from rounding up hours.</li>
-    </ul>
-  </details>
+<!-- FULL APP LOGIC -->
+<script>
+/*****************************************************
+ FULL APP LOGIC — Work Hours Tracker
+******************************************************/
 
-  <script>
-    let bills = [];
+(function(){
 
-    function addBill() {
-      const name = document.getElementById('billName').value;
-      const amount = parseFloat(document.getElementById('bill').value);
+  const STORAGE_KEY = "dnw_master_v3";
 
-      if (!name || isNaN(amount) || amount <= 0) {
-        alert("Please enter a valid nickname and bill amount.");
-        return;
-      }
+  const $ = id => document.getElementById(id);
 
-      bills.push({ name, amount });
-      document.getElementById('billList').innerHTML = bills.map(b => `<li>${b.name}: $${b.amount.toFixed(2)}</li>`).join("");
-      document.getElementById('billName').value = '';
-      document.getElementById('bill').value = '';
+  const dateInput = $("date");
+  const startInput = $("start");
+  const endInput = $("end");
+  const breakInput = $("break");
+  const rateInput = $("rate");
+  const taxInput = $("tax");
+  const tagInput = $("tag");
+  const notesInput = $("notes");
+
+  const historyBody = $("historyBody");
+  const totalHoursChip = $("totalHours");
+  const totalEarningsChip = $("totalEarnings");
+  const entryCount = $("entryCount");
+  const summaries = $("summaries");
+
+  const filterRange = $("filterRange");
+  const groupBy = $("groupBy");
+
+  const startTimerBtn = $("startTimer");
+  const stopTimerBtn = $("stopTimer");
+  const liveTimer = $("liveTimer");
+
+  let timerStart = null;
+  let timerInterval = null;
+
+  // Prefill today's date
+  dateInput.value = new Date().toISOString().slice(0,10);
+
+  function load(){
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"); }
+    catch { return []; }
+  }
+
+  function save(data){
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  }
+
+  function calcMinutes(startStr, endStr, breakMin){
+    if(!(startStr && endStr)) return 0;
+    const [sh, sm] = startStr.split(":").map(Number);
+    const [eh, em] = endStr.split(":").map(Number);
+    let s = sh*60 + sm;
+    let e = eh*60 + em;
+    if(e < s) e += 1440;
+    return Math.max(0, e - s - Number(breakMin||0));
+  }
+
+  function earnings(minutes, rate){
+    if(!rate) return 0;
+    return Math.round((minutes/60 * rate)*100)/100;
+  }
+
+  function addEntry(entry){
+    const arr = load();
+    arr.unshift(entry);
+    save(arr);
+  }
+
+  function render(){
+    const all = load();
+    let entries = [...all];
+
+    const now = new Date();
+
+    // Filter
+    if(filterRange.value === "7"){
+      const cutoff = new Date(now); cutoff.setDate(cutoff.getDate()-7);
+      entries = entries.filter(e => new Date(e.date) >= cutoff);
+    } else if(filterRange.value === "30"){
+      const cutoff = new Date(now); cutoff.setDate(cutoff.getDate()-30);
+      entries = entries.filter(e => new Date(e.date) >= cutoff);
+    } else if(filterRange.value === "week"){
+      const d = new Date();
+      const day = d.getDay();
+      const diff = d.getDate() - day + (day===0 ? -6 : 1);
+      const monday = new Date(d.setDate(diff)); monday.setHours(0,0,0,0);
+      entries = entries.filter(e => new Date(e.date) >= monday);
+    } else if(filterRange.value === "month"){
+      const first = new Date(now.getFullYear(), now.getMonth(), 1);
+      entries = entries.filter(e => new Date(e.date) >= first);
     }
 
-    function calculate() {
-      const wage = parseFloat(document.getElementById('wage').value);
-      let taxRate = parseFloat(document.getElementById('taxRate').value) / 100 || 0.22;
-
-      if (isNaN(wage) || wage <= 0 || bills.length === 0) {
-        alert("Please enter your wage and add at least one bill.");
-        return;
-      }
-
-      let table = `
-        <table>
-          <tr>
-            <th>Bill</th>
-            <th>Bill Amount ($)</th>
-            <th>Hours Needed</th>
-            <th>Earnings Before Tax ($)</th>
-            <th>Taxes ($)</th>
-            <th>Amount Earned ($)</th>
-            <th>Amount Paid ($)</th>
-            <th>Savings ($)</th>
-          </tr>
+    // Render table
+    historyBody.innerHTML = "";
+    entries.forEach(e=>{
+      const tr = document.createElement("tr");
+      const hrs = (e.minutes/60).toFixed(2);
+      const earn = e.rate ? earnings(e.minutes, e.rate).toFixed(2) : "";
+      tr.innerHTML = `
+        <td>${e.date}</td>
+        <td>${e.start}</td>
+        <td>${e.end}</td>
+        <td>${e.break}</td>
+        <td>${hrs}</td>
+        <td>${e.rate ? "$"+e.rate.toFixed(2) : ""}</td>
+        <td>${earn ? "$"+ earn : ""}</td>
+        <td>${e.tag || ""}</td>
+        <td>${(e.notes||"").replace(/</g,"&lt;")}</td>
+        <td>
+          <button class="btn secondary editBtn" data-id="${e.id}">Edit</button>
+          <button class="btn ghost deleteBtn" data-id="${e.id}">Delete</button>
+        </td>
       `;
+      historyBody.appendChild(tr);
+    });
 
-      let totals = { bill: 0, hours: 0, earnings: 0, taxes: 0, earned: 0, paid: 0, savings: 0 };
+    // Totals
+    const totalMin = entries.reduce((s,e)=> s + (e.minutes||0), 0);
+    const totalEarn = entries.reduce((s,e)=> s + (e.rate ? earnings(e.minutes,e.rate) : 0), 0);
 
-      bills.forEach(bill => {
-        let netHourly = wage * (1 - taxRate);
-        let exactHours = bill.amount / netHourly;
-        let roundedHours = Math.ceil(exactHours);
+    totalHoursChip.textContent = `Total: ${(totalMin/60).toFixed(2)}h`;
+    totalEarningsChip.textContent = `$${totalEarn.toFixed(2)}`;
+    entryCount.textContent = load().length;
 
-        let earningsBeforeTax = roundedHours * wage;
-        let taxes = earningsBeforeTax * taxRate;
-        let amountEarned = earningsBeforeTax - taxes;
-        let savings = amountEarned - bill.amount;
+    renderSummaries();
 
-        table += `
-          <tr>
-            <td>${bill.name}</td>
-            <td>$${bill.amount.toFixed(2)}</td>
-            <td>${roundedHours}</td>
-            <td>$${earningsBeforeTax.toFixed(2)}</td>
-            <td>$${taxes.toFixed(2)}</td>
-            <td>$${amountEarned.toFixed(2)}</td>
-            <td>$${bill.amount.toFixed(2)}</td>
-            <td>$${savings.toFixed(2)}</td>
-          </tr>
-        `;
+    // Bind edit/delete
+    document.querySelectorAll(".deleteBtn").forEach(btn=>{
+      btn.onclick = () => {
+        if(!confirm("Delete this?")) return;
+        let arr = load();
+        arr = arr.filter(x=> x.id !== btn.dataset.id);
+        save(arr);
+        render();
+      };
+    });
 
-        totals.bill += bill.amount;
-        totals.hours += roundedHours;
-        totals.earnings += earningsBeforeTax;
-        totals.taxes += taxes;
-        totals.earned += amountEarned;
-        totals.paid += bill.amount;
-        totals.savings += savings;
-      });
+    document.querySelectorAll(".editBtn").forEach(btn=>{
+      btn.onclick = () => openModal(btn.dataset.id);
+    });
+  }
 
-      table += `
-        <tfoot>
-          <tr>
-            <td><b>Totals</b></td>
-            <td>$${totals.bill.toFixed(2)}</td>
-            <td>${totals.hours}</td>
-            <td>$${totals.earnings.toFixed(2)}</td>
-            <td>$${totals.taxes.toFixed(2)}</td>
-            <td>$${totals.earned.toFixed(2)}</td>
-            <td>$${totals.paid.toFixed(2)}</td>
-            <td>$${totals.savings.toFixed(2)}</td>
-          </tr>
-        </tfoot>
-      </table>`;
+  function renderSummaries(){
+    const all = load();
+    if(!all.length){ summaries.innerHTML = "No data yet."; return; }
 
-      document.getElementById('result').innerHTML = table;
-      document.getElementById('downloadButtons').style.display = "block"; // show export buttons
-    }
+    // Monthly
+    const months = {};
+    all.forEach(e=>{
+      const d = new Date(e.date);
+      const k = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
+      months[k] = months[k] || {min:0, earn:0, count:0};
+      months[k].min += e.minutes;
+      months[k].earn += e.rate ? earnings(e.minutes,e.rate) : 0;
+      months[k].count++;
+    });
 
-    function resetCalculator() {
-      bills = [];
-      document.getElementById('billList').innerHTML = '';
-      document.getElementById('result').innerHTML = '';
-      document.getElementById('downloadButtons').style.display = "none";
-      document.getElementById('wage').value = '';
-      document.getElementById('taxRate').value = 22;
-    }
+    const keys = Object.keys(months).sort().slice(-6);
+    let html = "<strong>Recent Months:</strong><ul>";
+    keys.forEach(k=>{
+      html+= `<li>${k}: ${(months[k].min/60).toFixed(2)}h — $${months[k].earn.toFixed(2)} (${months[k].count} entries)</li>`;
+    });
+    html+="</ul>";
+    summaries.innerHTML = html;
+  }
 
-    function downloadCSV() {
-      const rows = document.querySelectorAll("table tr");
-      let csv = [];
-      rows.forEach(row => {
-        let cols = row.querySelectorAll("td, th");
-        let rowData = [];
-        cols.forEach(col => rowData.push(col.innerText));
-        csv.push(rowData.join(","));
-      });
+  function clearForm(){
+    dateInput.value = new Date().toISOString().slice(0,10);
+    startInput.value = "";
+    endInput.value = "";
+    breakInput.value = 0;
+    rateInput.value = "";
+    tagInput.value = "";
+    notesInput.value = "";
+    $("instantSummary").style.display="none";
+  }
 
-      let csvFile = new Blob([csv.join("\n")], { type: "text/csv" });
-      let link = document.createElement("a");
-      link.href = URL.createObjectURL(csvFile);
-      link.download = "work_hours_calculator.csv";
-      link.click();
-    }
+  // TIMER logic
+  startTimerBtn.onclick = ()=>{
+    timerStart = Date.now();
+    startTimerBtn.disabled = true;
+    stopTimerBtn.disabled = false;
 
-    function downloadPDF() {
-      let printWindow = window.open('', '', 'height=600,width=800');
-      printWindow.document.write('<html><head><title>Work Hours Report</title></head><body>');
-      printWindow.document.write(document.querySelector("table").outerHTML);
-      printWindow.document.close();
-      printWindow.print();
-    }
-  </script>
-  <footer style="text-align:center; margin-top:20px; font-size:0.9rem; color:#555;">
-  Code by <b>Davi Nevae LLC</b> | <a href="https://www.davinevae.com" target="_blank">www.davinevae.com</a>
-</footer>
+    timerInterval = setInterval(()=>{
+      const diff = Date.now() - timerStart;
+      const h = Math.floor(diff/3600000);
+      const m = Math.floor((diff%3600000)/60000);
+      const s = Math.floor((diff%60000)/1000);
+      liveTimer.textContent = `Running — ${h}:${m}:${s}`;
+    },1000);
+  };
+
+  stopTimerBtn.onclick = ()=>{
+    clearInterval(timerInterval);
+    stopTimerBtn.disabled = true;
+    startTimerBtn.disabled = false;
+
+    const start = new Date(timerStart);
+    const end = new Date();
+
+    dateInput.value = start.toISOString().slice(0,10);
+    startInput.value = start.toTimeString().slice(0,5);
+    endInput.value = end.toTimeString().slice(0,5);
+
+    liveTimer.textContent = "Timer stopped";
+  };
+
+  // SAVE ENTRY
+  $("calcSave").onclick = ()=>{
+    const date = dateInput.value;
+    const start = startInput.value;
+    const end = endInput.value;
+    const br = Number(breakInput.value||0);
+    const rate = rateInput.value ? Number(rateInput.value) : null;
+    const tag = tagInput.value;
+    const notes = notesInput.value;
+
+    const minutes = calcMinutes(start,end,br);
+    if(minutes<=0){ alert("Duration is zero."); return; }
+
+    const entry = {
+      id: String(Date.now()) + Math.random().toString(36).slice(2),
+      date, start, end, break:br,
+      minutes, rate, tag, notes,
+      createdAt:new Date().toISOString()
+    };
+
+    addEntry(entry);
+
+    $("sessionText").textContent = `${date} ${start} → ${end}`;
+    $("durationText").textContent = (minutes/60).toFixed(2)+"h";
+    $("earningsText").textContent = rate ? "$"+earnings(minutes,rate).toFixed(2) : "—";
+    $("instantSummary").style.display = "block";
+
+    render();
+  };
+
+  $("clearForm").onclick = clearForm;
+
+  // CLEAR HISTORY
+  $("clearHistory").onclick = ()=>{
+    if(!confirm("Clear ALL history?")) return;
+    localStorage.removeItem(STORAGE_KEY);
+    render();
+  };
+
+  // EXPORT CSV
+  $("exportCsv").onclick = ()=>{
+    const data = load();
+    if(!data.length){ alert("No data."); return; }
+
+    const headers = ["id","date","start","end","break","minutes","hours","rate","earnings","tag","notes","createdAt"];
+    const rows = data.map(e=>{
+      return [
+        e.id, e.date, e.start, e.end,
+        e.break, e.minutes, (e.minutes/60).toFixed(2),
+        e.rate!==null ? e.rate.toFixed(2) : "",
+        e.rate ? earnings(e.minutes,e.rate).toFixed(2) : "",
+        e.tag||"", e.notes||"", e.createdAt
+      ].map(v=>`"${String(v).replace(/"/g,'""')}"`).join(",");
+    });
+
+    const csv = headers.join(",")+"\n"+rows.join("\n");
+    const blob = new Blob([csv],{type:"text/csv"});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "work_hours_history.csv";
+    a.click();
+  };
+
+  // EXPORT PDF
+  $("exportPdf").onclick = ()=>{
+    const data = load();
+    if(!data.length){ alert("No data."); return; }
+
+    const jsPDF = window.jspdf.jsPDF;
+    const doc = new jsPDF({unit:"pt",format:"letter"});
+
+    doc.text("Work Hours — Summary",40,40);
+
+    let y=70;
+    data.forEach(e=>{
+      if(y>700){ doc.addPage(); y=40; }
+      doc.text(`${e.date} ${e.start}-${e.end}  ${(e.minutes/60).toFixed(2)}h`,40,y);
+      y+=20;
+    });
+
+    doc.save("work_hours.pdf");
+  };
+
+  // PRINT SUMMARY
+  $("printSummary").onclick = ()=>{
+    const data = load();
+    if(!data.length){ alert("No data."); return; }
+
+    const win = window.open("", "_blank");
+    win.document.write("<html><head><title>Print Summary</title>");
+    win.document.write("<style>table{width:100%;border-collapse:collapse;}td,th{border:1px solid #ccc;padding:8px;}</style>");
+    win.document.write("</head><body>");
+
+    win.document.write("<h2>Work Hours Summary</h2>");
+    win.document.write("<table><tr><th>Date</th><th>Start</th><th>End</th><th>Hours</th></tr>");
+
+    data.forEach(e=>{
+      win.document.write(`<tr><td>${e.date}</td><td>${e.start}</td><td>${e.end}</td><td>${(e.minutes/60).toFixed(2)}</td></tr>`);
+    });
+
+    win.document.write("</table></body></html>");
+    win.print();
+  };
+
+  // GENERATE SHARE LINK
+  $("generateLink").onclick = ()=>{
+    const data = load();
+    if(!data.length){ alert("No history."); return; }
+
+    const snippet = data.slice(0,10).map(e=>({
+      date:e.date,
+      start:e.start,
+      end:e.end,
+      hours:(e.minutes/60).toFixed(2),
+      earnings:e.rate ? earnings(e.minutes,e.rate).toFixed(2) : ""
+    }));
+
+    const b64 = btoa(encodeURIComponent(JSON.stringify(snippet)));
+    const url = location.origin + location.pathname + "#share=" + b64;
+
+    navigator.clipboard.writeText(url).then(()=>{
+      alert("Shareable link copied to clipboard.");
+    });
+  };
+
+  // THEME TOGGLE
+  $("toggleTheme").onclick = ()=>{
+    const app = $("app");
+    const next = app.dataset.theme === "light" ? "dark" : "light";
+    app.dataset.theme = next;
+    $("toggleTheme").textContent = next==="dark" ? "Light" : "Dark";
+  };
+
+  // IMPORT CSV
+  $("importCsv").onclick = ()=>{
+    const input = document.createElement("input");
+    input.type="file"; input.accept=".csv";
+
+    input.onchange = e =>{
+      const file = e.target.files[0];
+      if(!file) return;
+
+      const reader = new FileReader();
+      reader.onload = ()=>{
+
+        const lines = reader.result.split(/\r?\n/).filter(Boolean);
+        if(lines.length<2){ alert("Empty CSV"); return; }
+
+        const headers = lines[0].split(",").map(h=>h.replace(/"/g,"").trim());
+        const arr = load();
+
+        lines.slice(1).forEach(line=>{
+          const cells = line.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g)
+            .map(v=>v.replace(/(^"|"$)/g,""));
+
+          const rec = {};
+          headers.forEach((h,i)=> rec[h] = cells[i]);
+
+          arr.unshift({
+            id: rec.id || (Date.now()+""),
+            date: rec.date,
+            start: rec.start,
+            end: rec.end,
+            break: Number(rec.break||0),
+            minutes: Number(rec.minutes||0),
+            rate: rec.rate ? Number(rec.rate) : null,
+            tag: rec.tag || "",
+            notes: rec.notes || "",
+            createdAt: rec.createdAt || new Date().toISOString()
+          });
+        });
+
+        save(arr);
+        render();
+        alert("CSV Imported");
+      };
+      reader.readAsText(file);
+    };
+    input.click();
+  };
+
+  // EDIT MODAL
+  const modal = $("modal");
+  const m_date = $("m_date");
+  const m_start = $("m_start");
+  const m_end = $("m_end");
+  const m_break = $("m_break");
+  const m_rate = $("m_rate");
+  const m_tag = $("m_tag");
+  const m_notes = $("m_notes");
+
+  let editId = null;
+
+  function openModal(id){
+    const data = load();
+    const entry = data.find(x=>x.id===id);
+    if(!entry) return;
+
+    editId = id;
+    m_date.value = entry.date;
+    m_start.value = entry.start;
+    m_end.value = entry.end;
+    m_break.value = entry.break;
+    m_rate.value = entry.rate ?? "";
+    m_tag.value = entry.tag||"";
+    m_notes.value = entry.notes||"";
+
+    modal.style.display = "flex";
+  }
+
+  $("modalCancel").onclick = ()=> modal.style.display="none";
+
+  $("modalSave").onclick = ()=>{
+    const arr = load();
+    const idx = arr.findIndex(x=>x.id === editId);
+    if(idx===-1) return;
+
+    const minutes = calcMinutes(m_start.value,m_end.value,m_break.value);
+    arr[idx] = {
+      ...arr[idx],
+      date:m_date.value,
+      start:m_start.value,
+      end:m_end.value,
+      break:Number(m_break.value||0),
+      minutes,
+      rate:m_rate.value ? Number(m_rate.value) : null,
+      tag:m_tag.value,
+      notes:m_notes.value,
+      updatedAt:new Date().toISOString()
+    };
+
+    save(arr);
+    modal.style.display="none";
+    render();
+  };
+
+  // INITIAL RENDER
+  render();
+
+})();
+</script>
 
 </body>
 </html>
