@@ -498,6 +498,164 @@ function render(){
 }
 
 render();
+   /* ======================================================================
+   EXPORT FUNCTIONS
+   ====================================================================== */
+
+function download(filename, content, type="text/csv") {
+  const blob = new Blob([content], { type });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+/* FULL CSV EXPORT */
+$("exportCsv").onclick = () => {
+  const arr = load();
+  if (!arr.length) return alert("No entries to export.");
+
+  let csv = "Date,Start,End,Break,Hours,Rate,Earnings,Tag,Notes\n";
+
+  arr.forEach(e => {
+    const hrs = (e.minutes / 60).toFixed(2);
+    const earn = e.rate ? (e.minutes / 60 * e.rate).toFixed(2) : "";
+    csv += [
+      e.date, e.start, e.end, e.break, hrs,
+      e.rate || "", earn, e.tag || "",
+      (e.notes || "").replace(/,/g, ";")
+    ].join(",") + "\n";
+  });
+
+  download("work-hours.csv", csv);
+};
+
+/* SUMMARY CSV (WEEK + MONTH) */
+$("exportSummaryCsv").onclick = () => {
+  const arr = load();
+  if (!arr.length) return alert("No entries to summarize.");
+
+  const weekly = {};
+  const monthly = {};
+
+  arr.forEach(e => {
+    const dt = new Date(e.date);
+    const year = dt.getFullYear();
+    const week = Math.ceil((((dt - new Date(year,0,1)) / 86400000) + new Date(year,0,1).getDay() + 1) / 7);
+    const month = dt.getMonth() + 1;
+
+    if (!weekly[week]) weekly[week] = { minutes:0, money:0 };
+    if (!monthly[month]) monthly[month] = { minutes:0, money:0 };
+
+    weekly[week].minutes += e.minutes;
+    monthly[month].minutes += e.minutes;
+
+    if (e.rate) {
+      weekly[week].money += (e.minutes/60 * e.rate);
+      monthly[month].money += (e.minutes/60 * e.rate);
+    }
+  });
+
+  let csv = "Period,Hours,Earnings\n";
+
+  Object.keys(weekly).forEach(w => {
+    csv += `Week ${w},${(weekly[w].minutes/60).toFixed(2)},${weekly[w].money.toFixed(2)}\n`;
+  });
+
+  Object.keys(monthly).forEach(m => {
+    csv += `Month ${m},${(monthly[m].minutes/60).toFixed(2)},${monthly[m].money.toFixed(2)}\n`;
+  });
+
+  download("summary.csv", csv);
+};
+
+/* EXCEL CSV EXPORT */
+$("downloadExcel").onclick = () => {
+  const arr = load();
+  if (!arr.length) return alert("No data to export.");
+
+  let csv = "Date,Start,End,Break,Hours,Rate,Earnings,Tag,Notes\r\n";
+
+  arr.forEach(e => {
+    const hrs = (e.minutes / 60).toFixed(2);
+    const earn = e.rate ? (e.minutes/60 * e.rate).toFixed(2) : "";
+    csv += `"${e.date}","${e.start}","${e.end}","${e.break}",` +
+           `"${hrs}","${e.rate||""}","${earn}","${e.tag||""}","${(e.notes||"").replace(/"/g,"'")}"\r\n`;
+  });
+
+  download("excel-export.csv", csv, "application/vnd.ms-excel");
+};
+
+/* PDF (SUMMARY ONLY) */
+$("exportPdf").onclick = () => {
+  const arr = load();
+  if (!arr.length) return alert("No entries to export.");
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  doc.setFontSize(16);
+  doc.text("Work Hours Summary", 10, 15);
+
+  let y = 30;
+  let totalMin = 0, totalEarn = 0;
+
+  arr.forEach(e => {
+    const hrs = (e.minutes/60).toFixed(2);
+    const earn = e.rate ? (e.minutes/60*e.rate).toFixed(2) : "0.00";
+
+    totalMin += e.minutes;
+    totalEarn += parseFloat(earn);
+
+    doc.setFontSize(11);
+    doc.text(`${e.date}: ${hrs} hrs — $${earn}`, 10, y);
+    y += 8;
+    if (y > 270) { doc.addPage(); y = 20; }
+  });
+
+  doc.setFontSize(14);
+  doc.text(`Total Hours: ${(totalMin/60).toFixed(2)}`, 10, y+10);
+  doc.text(`Total Earnings: $${totalEarn.toFixed(2)}`, 10, y+20);
+
+  doc.save("summary.pdf");
+};
+
+/* PDF (ENTRIES TABLE EXPORT) */
+$("exportPdfEntries").onclick = () => {
+  const arr = load();
+  if (!arr.length) return alert("No entries to export.");
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation:"landscape" });
+
+  doc.setFontSize(14);
+  doc.text("Work Hours — Full Entry Export", 10, 15);
+
+  const headers = ["Date","Start","End","Break","Hours","Rate","Earn","Tag","Notes"];
+  const rows = arr.map(e => {
+    const hrs = (e.minutes/60).toFixed(2);
+    const earnVal = e.rate ? (e.minutes/60*e.rate).toFixed(2) : "";
+    return [
+      e.date, e.start, e.end, e.break,
+      hrs, e.rate||"", earnVal, e.tag||"", e.notes||""
+    ];
+  });
+
+  let y = 30;
+  doc.setFontSize(10);
+  doc.text(headers.join("   "), 10, y);
+  y += 7;
+
+  rows.forEach(row => {
+    doc.text(row.join(" | "), 10, y);
+    y += 6;
+    if (y > 190) { doc.addPage(); y = 20; }
+  });
+
+  doc.save("entries.pdf");
+};
 
 })();
 </script>
