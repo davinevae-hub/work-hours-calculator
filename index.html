@@ -528,6 +528,12 @@ $("exportCsv").onclick = () => {
       (e.notes || "").replace(/,/g, ";")
     ].join(",") + "\n";
   });
+     const totalMin = arr.reduce((s,e)=>s+e.minutes,0);
+  const totalEarn = arr.reduce((s,e)=>s+(e.rate ? (e.minutes/60*e.rate) : 0),0);
+
+  csv += "\nTOTALS,,," +
+         "," + (totalMin/60).toFixed(2) +
+         ",," + totalEarn.toFixed(2) + ",,\n";
 
   download("work-hours.csv", csv);
 };
@@ -585,6 +591,12 @@ $("downloadExcel").onclick = () => {
            `"${hrs}","${e.rate||""}","${earn}","${e.tag||""}","${(e.notes||"").replace(/"/g,"'")}"\r\n`;
   });
 
+     const totalMin = arr.reduce((s,e)=>s+e.minutes,0);
+  const totalEarn = arr.reduce((s,e)=>s+(e.rate ? (e.minutes/60*e.rate) : 0),0);
+
+  csv += `\r\n"TOTALS","","","",` +
+         `"${(totalMin/60).toFixed(2)}","","${totalEarn.toFixed(2)}","",""\r\n`;
+
   download("excel-export.csv", csv, "application/vnd.ms-excel");
 };
 
@@ -614,6 +626,11 @@ $("exportPdf").onclick = () => {
     y += 8;
     if (y > 270) { doc.addPage(); y = 20; }
   });
+
+     const totalMin = arr.reduce((s,e)=>s+e.minutes,0);
+  const totalEarn = arr.reduce((s,e)=>s+(e.rate ? (e.minutes/60*e.rate) : 0),0);
+
+  csv += `\nOverall Total,${(totalMin/60).toFixed(2)},${totalEarn.toFixed(2)}\n`;
 
   doc.setFontSize(14);
   doc.text(`Total Hours: ${(totalMin/60).toFixed(2)}`, 10, y+10);
@@ -653,7 +670,14 @@ $("exportPdfEntries").onclick = () => {
     y += 6;
     if (y > 190) { doc.addPage(); y = 20; }
   });
+const totalMin = arr.reduce((s,e)=>s+e.minutes,0);
+const totalEarn = arr.reduce((s,e)=>s+(e.rate ? (e.minutes/60*e.rate) : 0),0);
 
+doc.setFontSize(12);
+doc.setFont(undefined, "bold");
+doc.text(`Total Hours: ${(totalMin/60).toFixed(2)}`, 10, y+12);
+doc.text(`Total Earnings: $${totalEarn.toFixed(2)}`, 10, y+20);
+doc.setFont(undefined, "normal");
   doc.save("entries.pdf");
 };
 
