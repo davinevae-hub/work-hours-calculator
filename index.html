@@ -5,11 +5,13 @@
 <title>Work Hours & Time Tracker — Davi Nevae</title>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-<style>
-/* ======================================================================
-   FULLY RESPONSIVE, MOBILE-FIRST STYLE SYSTEM
-   ====================================================================== */
+<!-- jsPDF CDN for PDF export -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
+<style>
+/* ----------------------------
+   Responsive, mobile-first CSS
+   ---------------------------- */
 :root{
   --bg:#f4f6fb;
   --card:#ffffff;
@@ -18,10 +20,9 @@
   --accent2:#0ea5a4;
   --danger:#ef4444;
   --radius:10px;
-  font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial;
-  color-scheme:light;
+  font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+  color-scheme: light;
 }
-
 [data-theme="dark"]{
   --bg:#0b1220;
   --card:#071025;
@@ -29,660 +30,788 @@
   --accent:#3b82f6;
   --accent2:#14b8a6;
   --danger:#fb7185;
-  color-scheme:dark;
+  color-scheme: dark;
 }
-
-html, body{
-  margin:0;
-  padding:0;
-  background:var(--bg);
-  overflow-x:hidden;
-}
-
-.app{
-  width:100%;
-  max-width:1100px;
-  margin:0 auto;
-  background:var(--card);
-  border-radius:var(--radius);
-  box-shadow:0 10px 30px rgba(0,0,0,0.1);
-}
-
-header{
-  display:flex;
-  flex-wrap:wrap;
-  gap:12px;
-  align-items:center;
-  padding:18px;
-  border-bottom:1px solid rgba(0,0,0,0.06);
-  background:linear-gradient(90deg,transparent,rgba(0,0,0,0.02));
-}
-
-.brand h1{
-  margin:0;
-  font-size:18px;
-}
-.brand p{
-  margin:0;
-  color:var(--muted);
-  font-size:12px;
-}
-
-.controls{
-  margin-left:auto;
-  display:flex;
-  flex-wrap:wrap;
-  gap:8px;
-}
-
-.btn{
-  padding:8px 12px;
-  border-radius:8px;
-  border:0;
-  cursor:pointer;
-  font-weight:600;
-  background:var(--accent);
-  color:#fff;
-}
-.btn.secondary{
-  background:transparent;
-  color:var(--accent);
-  border:1px solid rgba(37,99,235,0.25);
-}
-.btn.ghost{
-  background:transparent;
-  color:var(--muted);
-  border:1px dashed rgba(0,0,0,0.15);
-}
-.btn.warn{
-  background:var(--danger);
-  color:#fff;
-}
-
-main{
-  padding:18px;
-  display:flex;
-  flex-direction:column;
-  gap:18px;
-}
-@media(min-width:900px){
-  main{
-    display:grid;
-    grid-template-columns:380px 1fr;
-  }
-}
-
-.panel{
-  background:rgba(255,255,255,0.5);
-  padding:14px;
-  border-radius:var(--radius);
-}
-
-label{
-  font-size:13px;
-  margin-bottom:4px;
-  display:block;
-  color:var(--muted);
-}
-
-input,textarea,select{
-  width:100%;
-  padding:10px;
-  font-size:14px;
-  border-radius:8px;
-  border:1px solid rgba(0,0,0,0.08);
-  margin-bottom:10px;
-  background:transparent;
-  color:inherit;
-}
-
-.grid2{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:8px;
-}
-
-.timer{
-  display:flex;
-  gap:8px;
-  align-items:center;
-  margin:10px 0;
-}
-
-.small{
-  font-size:12px;
-  color:var(--muted);
-}
-
-.right{
-  display:flex;
-  flex-direction:column;
-  gap:12px;
-}
-
-/* Table */
-.table-wrap{
-  width:100%;
-  overflow-x:auto;
-  padding:8px;
-}
-table{
-  width:100%;
-  border-collapse:collapse;
-  font-size:13px;
-  min-width:850px;
-}
-th,td{
-  padding:10px;
-  border-bottom:1px solid rgba(0,0,0,0.06);
-  text-align:left;
-}
-th{
-  font-weight:700;
-  font-size:12px;
-  color:var(--muted);
-}
-
-.chip{
-  padding:6px 10px;
-  border-radius:999px;
-  background:rgba(37,99,235,0.1);
-  color:var(--accent);
-  font-weight:600;
-  font-size:13px;
-}
-
-footer{
-  padding:12px;
-  border-top:1px solid rgba(0,0,0,0.06);
-  display:flex;
-  justify-content:space-between;
-  flex-wrap:wrap;
-}
-
-.modal-backdrop{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,0.35);
-  display:none;
-  align-items:center;
-  justify-content:center;
-  z-index:50;
-}
-
-.modal{
-  background:var(--card);
-  padding:14px;
-  border-radius:10px;
-  width:94%;
-  max-width:700px;
-}
-
-.summary-card{
-  padding:12px;
-  border-radius:8px;
-  background:rgba(0,0,0,0.03);
-  margin-top:12px;
-}
-
-@media(max-width:500px){
-  header{
-    justify-content:flex-start;
-  }
-  .controls{
-    width:100%;
-    justify-content:flex-start;
-  }
-  table{ font-size:12px; }
-}
+html,body{margin:0;padding:0;background:var(--bg);overflow-x:hidden;}
+.app{width:100%;max-width:1100px;margin:0 auto;background:var(--card);border-radius:var(--radius);box-shadow:0 10px 30px rgba(0,0,0,0.1);overflow:hidden;}
+header{display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:18px;border-bottom:1px solid rgba(0,0,0,0.06);background:linear-gradient(90deg,transparent,rgba(0,0,0,0.02));}
+.brand h1{margin:0;font-size:18px;} .brand p{margin:0;color:var(--muted);font-size:12px;}
+.controls{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;}
+.btn{padding:8px 12px;border-radius:8px;border:0;cursor:pointer;font-weight:600;background:var(--accent);color:#fff;}
+.btn.secondary{background:transparent;color:var(--accent);border:1px solid rgba(37,99,235,0.25);}
+.btn.ghost{background:transparent;color:var(--muted);border:1px dashed rgba(0,0,0,0.15);}
+.btn.warn{background:var(--danger);color:#fff;}
+main{padding:18px;display:flex;flex-direction:column;gap:18px;}
+@media(min-width:900px){main{display:grid;grid-template-columns:380px 1fr;gap:18px;}}
+.panel{background:rgba(255,255,255,0.5);padding:14px;border-radius:var(--radius);}
+label{display:block;font-size:13px;margin-bottom:6px;color:var(--muted);}
+input,textarea,select{width:100%;padding:10px;border-radius:8px;border:1px solid rgba(0,0,0,0.08);margin-bottom:10px;font-size:14px;background:transparent;color:inherit;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.timer{display:flex;gap:8px;align-items:center;margin:10px 0;}
+.small{font-size:12px;color:var(--muted);}
+.table-wrap{width:100%;overflow-x:auto;padding:8px;}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:900px;}
+th,td{padding:10px;border-bottom:1px solid rgba(0,0,0,0.06);text-align:left;}
+th{font-weight:700;color:var(--muted);font-size:12px;}
+.chip{padding:6px 10px;border-radius:999px;background:rgba(37,99,235,0.1);color:var(--accent);font-weight:600;font-size:13px;}
+footer{padding:12px;border-top:1px solid rgba(0,0,0,0.06);display:flex;justify-content:space-between;flex-wrap:wrap;}
+.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.35);display:none;align-items:center;justify-content:center;z-index:60;}
+.modal{background:var(--card);padding:14px;border-radius:10px;width:94%;max-width:700px;}
+.summary-card{padding:12px;border-radius:8px;background:rgba(0,0,0,0.03);margin-top:12px;}
+@media(max-width:500px){table{font-size:12px;} header{justify-content:flex-start;} .controls{width:100%;justify-content:flex-start;}}
 </style>
-
-<!-- jsPDF (PDF export) -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
 </head>
-
-
 <body>
 <div class="app" id="app" data-theme="light">
-
-<header>
-  <div class="brand">
-    <h1>Work Hours & Time Tracker</h1>
-    <p>Fast • Private • Exportable — Built by Davi Nevae LLC</p>
-  </div>
-  <div class="controls">
-    <button id="toggleTheme" class="btn secondary">Dark</button>
-    <button id="importCsv" class="btn ghost">Import CSV</button>
-    <button id="exportCsv" class="btn">Export CSV</button>
-    <button id="exportPdf" class="btn secondary">Export PDF</button>
-  </div>
-</header>
-
-<main>
-
-<!-- LEFT PANEL -->
-<aside class="panel">
-  <label>Date</label>
-  <input id="date" type="date"/>
-
-  <div class="grid2">
-    <div>
-      <label>Start</label>
-      <input id="start" type="time"/>
+  <header>
+    <div class="brand">
+      <h1>Work Hours & Time Tracker</h1>
+      <p>Fast • Private • Exportable — Davi Nevae</p>
     </div>
-    <div>
-      <label>End</label>
-      <input id="end" type="time"/>
-    </div>
-  </div>
-
-  <label>Break minutes</label>
-  <input id="break" type="number" value="0"/>
-
-  <label>Rate ($/hr)</label>
-  <input id="rate" type="number" step="0.01"/>
-
-  <label>Tax (%)</label>
-  <input id="tax" type="number" value="22"/>
-
-  <label>Tag</label>
-  <input id="tag" type="text"/>
-
-  <label>Notes</label>
-  <textarea id="notes" rows="2"></textarea>
-
-  <div class="timer">
-    <button id="startTimer" class="btn">Start</button>
-    <button id="stopTimer" class="btn secondary" disabled>Stop</button>
-    <div id="liveTimer" class="small">Timer inactive</div>
-  </div>
-
-  <div class="grid2">
-    <button id="calcSave" class="btn">Save Entry</button>
-    <button id="clearForm" class="btn secondary">Clear</button>
-  </div>
-
-  <div id="instantSummary" class="summary-card" style="display:none;">
-    <strong>Session:</strong> <span id="sessionText"></span><br/>
-    <span class="small">Duration: <span id="durationText"></span> — Earnings: <span id="earningsText"></span></span>
-  </div>
-</aside>
-
-<!-- RIGHT PANEL -->
-<section class="right">
-
-  <div class="panel">
-    <div style="display:flex;justify-content:space-between;">
-      <div>
-        <strong>History</strong><br/>
-        <span class="small">Local entries</span>
-      </div>
-      <button id="clearHistory" class="btn ghost">Clear</button>
-    </div>
-  </div>
-
-  <div class="panel table-wrap">
-    <table>
-      <thead>
-        <tr>
-          <th>Date</th><th>Start</th><th>End</th><th>Break</th>
-          <th>Hours</th><th>Rate</th><th>Earnings</th>
-          <th>Tag</th><th>Notes</th><th>Actions</th>
-        </tr>
-      </thead>
-      <tbody id="historyBody"></tbody>
-    </table>
-  </div>
-
-  <div class="panel">
-    <div style="display:flex;align-items:center;gap:12px;">
-      <div class="chip" id="totalHours">Total: 0h</div>
-      <div class="chip" id="totalEarnings">$0.00</div>
-      <span class="small">Entries: <span id="entryCount">0</span></span>
-    </div>
-
-    <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
-      <button id="exportSummaryCsv" class="btn">Export Summary CSV</button>
+    <div class="controls" role="toolbar" aria-label="Primary controls">
+      <button id="toggleTheme" class="btn secondary" title="Toggle theme">Dark</button>
+      <button id="generateLink" class="btn secondary">Share</button>
+      <button id="importCsv" class="btn ghost">Import CSV</button>
+      <button id="exportCsv" class="btn">Export CSV</button>
+      <button id="exportSummaryCsv" class="btn secondary">Summary CSV</button>
       <button id="downloadExcel" class="btn secondary">Excel CSV</button>
+      <button id="exportPdf" class="btn secondary">Export PDF</button>
       <button id="exportPdfEntries" class="btn secondary">Entries PDF</button>
     </div>
+  </header>
 
-    <div style="margin-top:16px;">
-      <strong style="font-size:14px;">Weekly / Monthly Summary</strong>
-      <div id="summaries" class="small" style="margin-top:8px;color:var(--muted);"></div>
-    </div>
-  </div>
+  <main>
+    <!-- LEFT panel: form + timer -->
+    <aside class="panel" aria-labelledby="entryFormTitle">
+      <h2 id="entryFormTitle" class="small">Create / Track Session</h2>
 
-</section>
+      <label for="date">Date</label>
+      <input id="date" type="date" />
 
-</main>
+      <div class="grid2">
+        <div>
+          <label for="start">Start time</label>
+          <input id="start" type="time" />
+        </div>
+        <div>
+          <label for="end">End time</label>
+          <input id="end" type="time" />
+        </div>
+      </div>
 
-<footer>
-  <span class="small">Built by Davi Nevae LLC</span>
-  <span class="small">Storage key: dnw_master_v3</span>
-</footer>
+      <label for="break">Break minutes</label>
+      <input id="break" type="number" min="0" value="0" />
 
+      <label for="rate">Hourly rate ($)</label>
+      <input id="rate" type="number" min="0" step="0.01" placeholder="e.g. 25.00" />
+
+      <label for="tax">Estimated tax rate (%)</label>
+      <input id="tax" type="number" min="0" max="100" step="0.1" value="22" />
+
+      <label for="tag">Client / Tag (optional)</label>
+      <input id="tag" type="text" placeholder="Client or project" />
+
+      <label for="notes">Notes (optional)</label>
+      <textarea id="notes" rows="2" placeholder="What did you work on?"></textarea>
+
+      <div class="timer">
+        <button id="startTimer" class="btn">Start Timer</button>
+        <button id="stopTimer" class="btn secondary" disabled>Stop Timer</button>
+        <div id="liveTimer" class="small">Timer inactive</div>
+      </div>
+
+      <div class="row" style="display:flex;gap:8px;margin-top:8px;">
+        <button id="calcSave" class="btn">Calculate & Save</button>
+        <button id="clearForm" class="btn secondary">Clear</button>
+      </div>
+
+      <div id="instantSummary" class="summary-card" style="display:none;">
+        <div class="small">Session: <span id="sessionText"></span></div>
+        <div class="small muted">Duration: <span id="durationText"></span> — Earnings: <span id="earningsText"></span></div>
+      </div>
+
+      <div style="margin-top:12px;" class="small">This app stores history in your browser (localStorage). Export to keep backups.</div>
+    </aside>
+
+    <!-- RIGHT panel: history, table, totals -->
+    <section class="right">
+      <div class="panel toolbar" style="display:flex;flex-direction:column;gap:10px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <strong>History</strong>
+            <div class="small">Saved sessions (local)</div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <button id="clearHistory" class="btn ghost">Clear History</button>
+            <button id="printSummary" class="btn secondary">Print</button>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+          <label class="small" style="margin:0">Show:</label>
+          <select id="filterRange">
+            <option value="all">All time</option>
+            <option value="30">Last 30 days</option>
+            <option value="7">Last 7 days</option>
+            <option value="week">This week</option>
+            <option value="month">This month</option>
+          </select>
+          <label class="small" style="margin:0">Group:</label>
+          <select id="groupBy">
+            <option value="none">None</option>
+            <option value="day">Day</option>
+            <option value="week">Week</option>
+            <option value="month">Month</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="table-wrap panel" role="region" aria-label="History table">
+        <table id="historyTable" role="table">
+          <thead>
+            <tr>
+              <th>Date</th><th>Start</th><th>End</th><th>Break</th>
+              <th>Hours</th><th>Rate</th><th>Earnings</th><th>Tag</th><th>Notes</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="historyBody"></tbody>
+        </table>
+      </div>
+
+      <div class="panel" style="display:flex;flex-direction:column;gap:10px;">
+        <div style="display:flex;gap:12px;align-items:center;">
+          <div class="chip" id="totalHours">Total: 0.00h</div>
+          <div class="chip" id="totalEarnings">$0.00</div>
+          <div class="small">Entries: <span id="entryCount">0</span></div>
+        </div>
+
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
+          <button id="exportSummaryCsv" class="btn">Export Summary CSV</button>
+          <button id="downloadExcel" class="btn secondary">Download (Excel CSV)</button>
+          <button id="exportPdfEntries" class="btn secondary">Export PDF (entries)</button>
+        </div>
+
+        <div style="margin-top:6px;">
+          <h3 style="margin:0;font-size:14px;">Weekly / Monthly Summaries</h3>
+          <div id="summaries" class="small" style="margin-top:8px;"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="small">Built by Davi Nevae LLC</div>
+    <div class="small">Local storage key: <code>dnw_master_v3</code></div>
+  </footer>
 </div>
 
-
-
-<!-- EDIT MODAL -->
-<div id="modal" class="modal-backdrop">
-  <div class="modal">
+<!-- Edit modal -->
+<div id="modal" class="modal-backdrop" role="dialog" aria-hidden="true">
+  <div class="modal" role="document">
     <h3>Edit Entry</h3>
-
-    <div class="grid2">
-      <div><label>Date</label><input id="m_date" type="date"></div>
-      <div><label>Start</label><input id="m_start" type="time"></div>
-      <div><label>End</label><input id="m_end" type="time"></div>
-      <div><label>Break</label><input id="m_break" type="number"></div>
-      <div><label>Rate</label><input id="m_rate" type="number" step="0.01"></div>
-      <div><label>Tag</label><input id="m_tag" type="text"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      <div><label>Date</label><input id="m_date" type="date" /></div>
+      <div><label>Start</label><input id="m_start" type="time" /></div>
+      <div><label>End</label><input id="m_end" type="time" /></div>
+      <div><label>Break (min)</label><input id="m_break" type="number" min="0" /></div>
+      <div><label>Rate ($)</label><input id="m_rate" type="number" step="0.01" /></div>
+      <div><label>Tag</label><input id="m_tag" type="text" /></div>
+      <div style="grid-column:1/-1;"><label>Notes</label><textarea id="m_notes" rows="3"></textarea></div>
     </div>
-
-    <label>Notes</label>
-    <textarea id="m_notes" rows="3"></textarea>
-
-    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px;">
+    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:10px;">
       <button id="modalCancel" class="btn secondary">Cancel</button>
       <button id="modalSave" class="btn">Save</button>
     </div>
   </div>
 </div>
 
-
-
-<!-- FULL APP LOGIC -->
 <script>
+/* ============================================================
+   Full JS — Data model, UI bindings, exports with totals
+   ============================================================ */
 (function(){
 
-const STORAGE_KEY = "dnw_master_v3";
-const $ = id => document.getElementById(id);
+  const STORAGE_KEY = 'dnw_master_v3';
 
-const dateInput = $("date");
-const startInput = $("start");
-const endInput = $("end");
-const breakInput = $("break");
-const rateInput = $("rate");
-const tagInput = $("tag");
-const notesInput = $("notes");
+  // DOM refs
+  const $ = id => document.getElementById(id);
+  const dateInput = $('date');
+  const startInput = $('start');
+  const endInput = $('end');
+  const breakInput = $('break');
+  const rateInput = $('rate');
+  const taxInput = $('tax');
+  const tagInput = $('tag');
+  const notesInput = $('notes');
 
-const historyBody = $("historyBody");
-const totalHoursChip = $("totalHours");
-const totalEarningsChip = $("totalEarnings");
-const entryCount = $("entryCount");
+  const historyBody = $('historyBody');
+  const totalHoursChip = $('totalHours');
+  const totalEarningsChip = $('totalEarnings');
+  const entryCountSpan = $('entryCount');
+  const summariesDiv = $('summaries');
 
-dateInput.value = new Date().toISOString().slice(0,10);
+  const startTimerBtn = $('startTimer');
+  const stopTimerBtn = $('stopTimer');
+  const liveTimer = $('liveTimer');
 
-function load(){ try{ return JSON.parse(localStorage.getItem(STORAGE_KEY)||"[]"); }catch{ return[];} }
-function save(a){ localStorage.setItem(STORAGE_KEY, JSON.stringify(a)); }
+  // Export/import buttons
+  const exportCsvBtn = $('exportCsv');
+  const exportSummaryCsvBtn = $('exportSummaryCsv');
+  const downloadExcelBtn = $('downloadExcel');
+  const exportPdfBtn = $('exportPdf');
+  const exportPdfEntriesBtn = $('exportPdfEntries');
+  const importCsvBtn = $('importCsv');
+  const clearHistoryBtn = $('clearHistory');
+  const printSummaryBtn = $('printSummary');
+  const generateLinkBtn = $('generateLink');
+  const toggleThemeBtn = $('toggleTheme');
 
-function calcMinutes(start,end,br){
-  if(!(start&&end)) return 0;
-  const [sh,sm]=start.split(":").map(Number);
-  const [eh,em]=end.split(":").map(Number);
-  let s=sh*60+sm; let e=eh*60+em;
-  if(e<s) e+=1440;
-  return Math.max(0, (e-s)-Number(br||0));
-}
-function earn(min,r){ return r? Math.round((min/60*r)*100)/100 : 0; }
+  const filterRangeEl = $('filterRange');
+  const groupByEl = $('groupBy');
 
-$("clearForm").onclick=()=>{
-  dateInput.value=new Date().toISOString().slice(0,10);
-  startInput.value=""; endInput.value="";
-  breakInput.value="0"; rateInput.value="";
-  tagInput.value=""; notesInput.value="";
-  $("instantSummary").style.display="none";
-};
+  // Modal refs
+  const modal = $('modal');
+  const m_date = $('m_date');
+  const m_start = $('m_start');
+  const m_end = $('m_end');
+  const m_break = $('m_break');
+  const m_rate = $('m_rate');
+  const m_tag = $('m_tag');
+  const m_notes = $('m_notes');
+  const modalSave = $('modalSave');
+  const modalCancel = $('modalCancel');
 
-$("calcSave").onclick=()=>{
-  const d=dateInput.value, s=startInput.value, e=endInput.value,
-        br=Number(breakInput.value||0), r=rateInput.value?Number(rateInput.value):null;
-  const m=calcMinutes(s,e,br);
-  if(m<=0){ alert("Duration must be greater than zero"); return; }
+  // Prefill date
+  dateInput.value = new Date().toISOString().slice(0,10);
 
-  const entry={
-    id:String(Date.now())+Math.random().toString(36).slice(2),
-    date:d,start:s,end:e,break:br,minutes:m,
-    rate:r,tag:tagInput.value,notes:notesInput.value,
-    createdAt:new Date().toISOString()
-  };
-  const arr=load(); arr.unshift(entry); save(arr);
+  // Helpers
+  function loadHistory(){ try{ return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch(e){ return []; } }
+  function saveHistory(h){ localStorage.setItem(STORAGE_KEY, JSON.stringify(h)); }
+  function idNow(){ return 'id_' + Date.now() + '_' + Math.random().toString(36).slice(2,8); }
 
-  $("sessionText").textContent=`${d} ${s} → ${e}`;
-  $("durationText").textContent=(m/60).toFixed(2)+"h";
-  $("earningsText").textContent=r? "$"+earn(m,r).toFixed(2) : "—";
-  $("instantSummary").style.display="block";
+  function toTwo(n){ return String(n).padStart(2,'0'); }
+  function parseTime(str){ if(!str || !str.includes(':')) return null; const [hh,mm]=str.split(':').map(Number); return {hh,mm}; }
+  function minutesFromHM(h,m){ return (Number(h)||0)*60 + (Number(m)||0); }
+  function minutesToHHMM(mins){ const h=Math.floor(mins/60), m=Math.round(mins%60); return `${toTwo(h)}:${toTwo(m)}`; }
 
-  render();
-};
+  // calculates duration handling overnight
+  function calcDurationMinutes(startStr,endStr,breakMin){
+    const s = parseTime(startStr), e = parseTime(endStr);
+    if(!s || !e) return 0;
+    let sMin = minutesFromHM(s.hh,s.mm), eMin = minutesFromHM(e.hh,e.mm);
+    if(eMin < sMin) eMin += 24*60;
+    let dur = eMin - sMin - Number(breakMin || 0);
+    if(dur < 0) dur = 0;
+    return Math.round(dur);
+  }
 
-function render(){
-  const arr=load();
-  historyBody.innerHTML="";
-  arr.forEach(e=>{
-    const tr=document.createElement("tr");
-    const hrs=(e.minutes/60).toFixed(2);
-    const earned=e.rate? earn(e.minutes,e.rate).toFixed(2):"";
-    tr.innerHTML=`
-      <td>${e.date}</td>
-      <td>${e.start}</td>
-      <td>${e.end}</td>
-      <td>${e.break}</td>
-      <td>${hrs}</td>
-      <td>${e.rate? "$"+e.rate.toFixed(2):""}</td>
-      <td>${earned? "$"+earned:""}</td>
-      <td>${e.tag||""}</td>
-      <td>${(e.notes||"").replace(/</g,"&lt;")}</td>
-      <td>
-        <button class="btn secondary del" data-id="${e.id}">Delete</button>
-      </td>`;
-    historyBody.appendChild(tr);
-  });
+  function computeEarnings(minutes,rate){ if(!rate) return 0; return Math.round((minutes/60) * rate * 100) / 100; }
 
-  const totalMin=arr.reduce((s,x)=>s+x.minutes,0);
-  const totalEarn=arr.reduce((s,x)=>s+(x.rate?earn(x.minutes,x.rate):0),0);
+  // Timer
+  let timerInterval = null;
+  let timerStartTs = null;
+  if(startTimerBtn){
+    startTimerBtn.addEventListener('click', ()=>{
+      timerStartTs = Date.now();
+      startTimerBtn.disabled = true;
+      stopTimerBtn.disabled = false;
+      if(liveTimer) liveTimer.textContent = 'Timer running — 00:00:00';
+      timerInterval = setInterval(()=>{
+        const elapsed = Date.now() - timerStartTs;
+        const h = Math.floor(elapsed/3600000), m = Math.floor((elapsed%3600000)/60000), s=Math.floor((elapsed%60000)/1000);
+        if(liveTimer) liveTimer.textContent = `Timer running — ${toTwo(h)}:${toTwo(m)}:${toTwo(s)}`;
+      },500);
+    });
+  }
+  if(stopTimerBtn){
+    stopTimerBtn.addEventListener('click', ()=>{
+      if(!timerStartTs) return;
+      clearInterval(timerInterval);
+      const endTs = Date.now();
+      const sDt = new Date(timerStartTs), eDt = new Date(endTs);
+      dateInput.value = sDt.toISOString().slice(0,10);
+      startInput.value = `${toTwo(sDt.getHours())}:${toTwo(sDt.getMinutes())}`;
+      endInput.value = `${toTwo(eDt.getHours())}:${toTwo(eDt.getMinutes())}`;
+      startTimerBtn.disabled = false;
+      stopTimerBtn.disabled = true;
+      if(liveTimer) liveTimer.textContent = `Last session: ${startInput.value} → ${endInput.value}`;
+      timerStartTs = null;
+      timerInterval = null;
+    });
+  }
 
-  totalHoursChip.textContent=`Total: ${(totalMin/60).toFixed(2)}h`;
-  totalEarningsChip.textContent=`$${totalEarn.toFixed(2)}`;
-  entryCount.textContent=arr.length;
-
-  document.querySelectorAll(".del").forEach(btn=>{
-    btn.onclick=()=>{
-      if(!confirm("Delete entry?")) return;
-      const d=load().filter(x=>x.id!==btn.dataset.id);
-      save(d); render();
+  // Add entry
+  function addEntry({date,start,end,breakMinutes,rate,tag,notes}){
+    if(!date || !start || !end) { alert('Please enter date, start and end time.'); return false; }
+    const minutes = calcDurationMinutes(start,end,breakMinutes||0);
+    if(minutes <= 0) { alert('Calculated duration is zero. Check times and break minutes.'); return false; }
+    const entry = {
+      id: idNow(),
+      date,
+      start,
+      end,
+      break: Number(breakMinutes||0),
+      minutes,
+      rate: rate ? Number(rate) : null,
+      tag: tag || '',
+      notes: notes || '',
+      createdAt: new Date().toISOString()
     };
+    const h = loadHistory(); h.unshift(entry); saveHistory(h);
+    return true;
+  }
+
+  // Render history table & totals
+  function renderHistory(){
+    const all = loadHistory();
+    // filtering not implemented here (keeps simple) - could apply filterRangeEl.value
+    const entries = all.slice();
+    historyBody.innerHTML = '';
+    entries.forEach((ent, idx) => {
+      const tr = document.createElement('tr');
+      const hoursDecimal = (ent.minutes/60).toFixed(2);
+      const earnings = ent.rate ? computeEarnings(ent.minutes, ent.rate).toFixed(2) : '';
+      tr.innerHTML = `
+        <td>${ent.date}</td>
+        <td>${ent.start}</td>
+        <td>${ent.end}</td>
+        <td>${ent.break}</td>
+        <td>${hoursDecimal}</td>
+        <td>${ent.rate ? '$'+Number(ent.rate).toFixed(2) : ''}</td>
+        <td>${earnings ? '$'+earnings : ''}</td>
+        <td>${ent.tag || ''}</td>
+        <td>${(ent.notes || '').replace(/</g,'&lt;')}</td>
+        <td>
+          <button class="btn secondary btn-edit" data-id="${ent.id}">Edit</button>
+          <button class="btn ghost btn-delete" data-id="${ent.id}">Delete</button>
+        </td>
+      `;
+      historyBody.appendChild(tr);
+    });
+
+    // attach handlers
+    document.querySelectorAll('.btn-delete').forEach(btn=>{
+      btn.addEventListener('click', ()=> {
+        const id = btn.getAttribute('data-id');
+        if(!confirm('Delete this entry?')) return;
+        let full = loadHistory();
+        full = full.filter(x => x.id !== id);
+        saveHistory(full);
+        renderHistory();
+      });
+    });
+
+    document.querySelectorAll('.btn-edit').forEach(btn=>{
+      btn.addEventListener('click', ()=> openEditModal(btn.getAttribute('data-id')));
+    });
+
+    // totals
+    const totalMin = entries.reduce((s,e)=> s + (Number(e.minutes)||0), 0);
+    const totalEarnings = entries.reduce((s,e)=> s + (e.rate ? computeEarnings(e.minutes,e.rate):0), 0);
+    totalHoursChip.textContent = `Total: ${(totalMin/60).toFixed(2)}h`;
+    totalEarningsChip.textContent = `$${totalEarnings.toFixed(2)}`;
+    entryCountSpan.textContent = entries.length;
+
+    // render basic summaries (last 6 months/weeks)
+    renderSummaries(entries);
+  }
+
+  function renderSummaries(fullHistory){
+    if(!fullHistory || !fullHistory.length){ summariesDiv.innerHTML = '<div class="small">No data yet.</div>'; return; }
+    const byWeek = {}, byMonth = {};
+    fullHistory.forEach(e=>{
+      const d = new Date(e.date + 'T00:00:00');
+      // ISO week
+      const tmp = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+      const dayNum = tmp.getUTCDay() || 7;
+      tmp.setUTCDate(tmp.getUTCDate() + 4 - dayNum);
+      const yearStart = new Date(Date.UTC(tmp.getUTCFullYear(),0,1));
+      const weekNo = Math.ceil((((tmp - yearStart) / 86400000) + 1)/7);
+      const weekKey = `${tmp.getUTCFullYear()}-W${String(weekNo).padStart(2,'0')}`;
+      byWeek[weekKey] = byWeek[weekKey] || { minutes:0, earnings:0, count:0 };
+      byWeek[weekKey].minutes += Number(e.minutes||0);
+      byWeek[weekKey].earnings += e.rate ? computeEarnings(e.minutes,e.rate) : 0;
+      byWeek[weekKey].count++;
+
+      const monthKey = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+      byMonth[monthKey] = byMonth[monthKey] || { minutes:0, earnings:0, count:0 };
+      byMonth[monthKey].minutes += Number(e.minutes||0);
+      byMonth[monthKey].earnings += e.rate ? computeEarnings(e.minutes,e.rate) : 0;
+      byMonth[monthKey].count++;
+    });
+
+    const weekKeys = Object.keys(byWeek).sort().slice(-6);
+    const monthKeys = Object.keys(byMonth).sort().slice(-6);
+    let html = '<div><strong>Recent weeks</strong></div><ul>';
+    weekKeys.forEach(k => {
+      const v = byWeek[k];
+      html += `<li>${k}: ${(v.minutes/60).toFixed(2)}h — $${v.earnings.toFixed(2)} (${v.count} entries)</li>`;
+    });
+    html += '</ul><div style="margin-top:8px;"><strong>Recent months</strong></div><ul>';
+    monthKeys.forEach(k => {
+      const v = byMonth[k];
+      html += `<li>${k}: ${(v.minutes/60).toFixed(2)}h — $${v.earnings.toFixed(2)} (${v.count} entries)</li>`;
+    });
+    html += '</ul>';
+    summariesDiv.innerHTML = html;
+  }
+
+  // Edit modal
+  let editingId = null;
+  function openEditModal(id){
+    const h = loadHistory();
+    const e = h.find(x=>x.id===id);
+    if(!e) return;
+    editingId = id;
+    m_date.value = e.date;
+    m_start.value = e.start;
+    m_end.value = e.end;
+    m_break.value = e.break;
+    m_rate.value = e.rate !== null ? e.rate : '';
+    m_tag.value = e.tag || '';
+    m_notes.value = e.notes || '';
+    modal.style.display = 'flex';
+    modal.setAttribute('aria-hidden','false');
+  }
+  modalCancel.addEventListener('click', ()=> { modal.style.display='none'; modal.setAttribute('aria-hidden','true'); editingId=null; });
+  modalSave.addEventListener('click', ()=>{
+    const h = loadHistory();
+    const idx = h.findIndex(x=>x.id===editingId);
+    if(idx===-1){ alert('Entry missing'); modal.style.display='none'; return; }
+    const minutes = calcDurationMinutes(m_start.value,m_end.value,m_break.value);
+    h[idx].date = m_date.value;
+    h[idx].start = m_start.value;
+    h[idx].end = m_end.value;
+    h[idx].break = Number(m_break.value||0);
+    h[idx].minutes = minutes;
+    h[idx].rate = m_rate.value ? Number(m_rate.value) : null;
+    h[idx].tag = m_tag.value;
+    h[idx].notes = m_notes.value;
+    h[idx].updatedAt = new Date().toISOString();
+    saveHistory(h);
+    modal.style.display='none';
+    renderHistory();
   });
-}
 
-render();
-   /* ======================================================================
-   EXPORT FUNCTIONS
-   ====================================================================== */
-
-function download(filename, content, type="text/csv") {
-  const blob = new Blob([content], { type });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
-/* FULL CSV EXPORT */
-$("exportCsv").onclick = () => {
-  const arr = load();
-  if (!arr.length) return alert("No entries to export.");
-
-  let csv = "Date,Start,End,Break,Hours,Rate,Earnings,Tag,Notes\n";
-
-  arr.forEach(e => {
-    const hrs = (e.minutes / 60).toFixed(2);
-    const earn = e.rate ? (e.minutes / 60 * e.rate).toFixed(2) : "";
-    csv += [
-      e.date, e.start, e.end, e.break, hrs,
-      e.rate || "", earn, e.tag || "",
-      (e.notes || "").replace(/,/g, ";")
-    ].join(",") + "\n";
+  // Clear form
+  $('clearForm').addEventListener('click', ()=>{
+    dateInput.value = new Date().toISOString().slice(0,10);
+    startInput.value = '';
+    endInput.value = '';
+    breakInput.value = 0;
+    rateInput.value = '';
+    taxInput.value = 22;
+    tagInput.value = '';
+    notesInput.value = '';
+    document.getElementById('instantSummary').style.display='none';
   });
-     const totalMin = arr.reduce((s,e)=>s+e.minutes,0);
-  const totalEarn = arr.reduce((s,e)=>s+(e.rate ? (e.minutes/60*e.rate) : 0),0);
 
-  csv += "\nTOTALS,,," +
-         "," + (totalMin/60).toFixed(2) +
-         ",," + totalEarn.toFixed(2) + ",,\n";
-
-  download("work-hours.csv", csv);
-};
-
-/* SUMMARY CSV (WEEK + MONTH) */
-$("exportSummaryCsv").onclick = () => {
-  const arr = load();
-  if (!arr.length) return alert("No entries to summarize.");
-
-  const weekly = {};
-  const monthly = {};
-
-  arr.forEach(e => {
-    const dt = new Date(e.date);
-    const year = dt.getFullYear();
-    const week = Math.ceil((((dt - new Date(year,0,1)) / 86400000) + new Date(year,0,1).getDay() + 1) / 7);
-    const month = dt.getMonth() + 1;
-
-    if (!weekly[week]) weekly[week] = { minutes:0, money:0 };
-    if (!monthly[month]) monthly[month] = { minutes:0, money:0 };
-
-    weekly[week].minutes += e.minutes;
-    monthly[month].minutes += e.minutes;
-
-    if (e.rate) {
-      weekly[week].money += (e.minutes/60 * e.rate);
-      monthly[month].money += (e.minutes/60 * e.rate);
+  // Save entry
+  $('calcSave').addEventListener('click', ()=>{
+    const date = dateInput.value, start = startInput.value, end = endInput.value;
+    const breakMin = Number(breakInput.value||0);
+    const rate = rateInput.value ? Number(rateInput.value) : null;
+    const tag = tagInput.value, notes = notesInput.value;
+    const ok = addEntry({date,start,end,breakMinutes:breakMin,rate,tag,notes});
+    if(ok){
+      const minutes = calcDurationMinutes(start,end,breakMin);
+      const earnings = computeEarnings(minutes,rate);
+      document.getElementById('instantSummary').style.display='block';
+      document.getElementById('sessionText').textContent = `${date} ${start} → ${end}`;
+      document.getElementById('durationText').textContent = `${(minutes/60).toFixed(2)}h`;
+      document.getElementById('earningsText').textContent = rate ? ('$'+earnings.toFixed(2)) : '—';
+      renderHistory();
     }
   });
 
-  let csv = "Period,Hours,Earnings\n";
+  // Initial render
+  renderHistory();
 
-  Object.keys(weekly).forEach(w => {
-    csv += `Week ${w},${(weekly[w].minutes/60).toFixed(2)},${weekly[w].money.toFixed(2)}\n`;
+  // Clear history
+  clearHistoryBtn.addEventListener('click', ()=>{
+    if(!confirm('Clear all local history? This cannot be undone.')) return;
+    localStorage.removeItem(STORAGE_KEY);
+    renderHistory();
   });
 
-  Object.keys(monthly).forEach(m => {
-    csv += `Month ${m},${(monthly[m].minutes/60).toFixed(2)},${monthly[m].money.toFixed(2)}\n`;
+  // Print summary
+  printSummaryBtn.addEventListener('click', ()=>{
+    const h = loadHistory();
+    if(!h.length){ alert('No history to print.'); return; }
+    const win = window.open('', '_blank');
+    const totalMin = h.reduce((s,e)=>s + (e.minutes||0),0);
+    const totalEarnings = h.reduce((s,e)=> s + (e.rate ? computeEarnings(e.minutes,e.rate) : 0),0);
+    const rows = h.map(r => `<tr><td>${r.date}</td><td>${r.start}</td><td>${r.end}</td><td>${(r.minutes/60).toFixed(2)}</td><td>${r.rate? '$'+Number(r.rate).toFixed(2):''}</td><td>${r.rate? '$'+computeEarnings(r.minutes,r.rate).toFixed(2):''}</td><td>${r.tag||''}</td></tr>`).join('');
+    win.document.write(`
+      <html><head><title>Work Hours Summary</title>
+      <style>body{font-family:Arial;padding:20px} table{width:100%;border-collapse:collapse} td,th{border:1px solid #ccc;padding:8px}</style>
+      </head><body>
+      <h2>Work Hours Summary</h2>
+      <div>Total hours: ${(totalMin/60).toFixed(2)} — Total earnings: $${totalEarnings.toFixed(2)}</div>
+      <table><thead><tr><th>Date</th><th>Start</th><th>End</th><th>Hours</th><th>Rate</th><th>Earnings</th><th>Tag</th></tr></thead><tbody>
+      ${rows}
+      </tbody></table>
+      <script>window.print();</script>
+      </body></html>
+    `);
+    win.document.close();
   });
 
-  download("summary.csv", csv);
-};
-
-/* EXCEL CSV EXPORT */
-$("downloadExcel").onclick = () => {
-  const arr = load();
-  if (!arr.length) return alert("No data to export.");
-
-  let csv = "Date,Start,End,Break,Hours,Rate,Earnings,Tag,Notes\r\n";
-
-  arr.forEach(e => {
-    const hrs = (e.minutes / 60).toFixed(2);
-    const earn = e.rate ? (e.minutes/60 * e.rate).toFixed(2) : "";
-    csv += `"${e.date}","${e.start}","${e.end}","${e.break}",` +
-           `"${hrs}","${e.rate||""}","${earn}","${e.tag||""}","${(e.notes||"").replace(/"/g,"'")}"\r\n`;
+  // Shareable link (encodes last 10 entries)
+  generateLinkBtn.addEventListener('click', ()=>{
+    const h = loadHistory(); if(!h.length){ alert('No history to share.'); return; }
+    const N = Math.min(10,h.length);
+    const snippet = h.slice(0,N).map(e=>({date:e.date,start:e.start,end:e.end,hours:(e.minutes/60).toFixed(2),earnings:e.rate?computeEarnings(e.minutes,e.rate).toFixed(2):''}));
+    const json = JSON.stringify({generatedAt:new Date().toISOString(),entries:snippet});
+    const b64 = btoa(encodeURIComponent(json));
+    const url = location.origin + location.pathname + '#share=' + b64;
+    navigator.clipboard.writeText(url).then(()=> alert('Shareable summary link copied to clipboard.'));
   });
 
-     const totalMin = arr.reduce((s,e)=>s+e.minutes,0);
-  const totalEarn = arr.reduce((s,e)=>s+(e.rate ? (e.minutes/60*e.rate) : 0),0);
+  // Import CSV (append)
+  importCsvBtn.addEventListener('click', ()=>{
+    const input = document.createElement('input'); input.type='file'; input.accept='.csv';
+    input.addEventListener('change', (e)=>{
+      const file = e.target.files[0]; if(!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev)=>{
+        const txt = ev.target.result;
+        const lines = txt.split(/\r?\n/).filter(Boolean);
+        if(lines.length < 2){ alert('CSV empty.'); return; }
+        const headers = lines[0].split(',').map(h=>h.replace(/^"|"$/g,'').trim());
+        const arr = loadHistory();
+        lines.slice(1).forEach(line=>{
+          const values = line.match(/("([^"]|"")*"|[^,]+)/g).map(v=>v.replace(/^"|"$/g,'').replace(/""/g,'"'));
+          const rec = {};
+          headers.forEach((h,i)=> rec[h]=values[i]);
+          arr.unshift({
+            id: rec.id || idNow(),
+            date: rec.date || new Date().toISOString().slice(0,10),
+            start: rec.start || '',
+            end: rec.end || '',
+            break: Number(rec.break||0),
+            minutes: Number(rec.minutes||0),
+            rate: rec.rate ? Number(rec.rate) : null,
+            tag: rec.tag || '',
+            notes: rec.notes || '',
+            createdAt: rec.createdAt || new Date().toISOString()
+          });
+        });
+        saveHistory(arr);
+        renderHistory();
+        alert('CSV imported.');
+      };
+      reader.readAsText(file);
+    });
+    input.click();
+  });
 
-  csv += `\r\n"TOTALS","","","",` +
-         `"${(totalMin/60).toFixed(2)}","","${totalEarn.toFixed(2)}","",""\r\n`;
+  /* -----------------------
+     EXPORT / DOWNLOAD HELPERS
+     ----------------------- */
+  function download(filename, content, type='text/csv'){
+    const blob = new Blob([content], { type });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+  }
 
-  download("excel-export.csv", csv, "application/vnd.ms-excel");
-};
+  // ---------- FULL CSV EXPORT (with totals) ----------
+  exportCsvBtn.addEventListener('click', ()=>{
+    const arr = loadHistory();
+    if(!arr.length) return alert('No entries to export.');
+    let csv = "Date,Start,End,Break,Hours,Rate,Earnings,Tag,Notes\n";
+    arr.forEach(e=>{
+      const hrs = (e.minutes/60).toFixed(2);
+      const earn = e.rate ? (e.minutes/60 * e.rate).toFixed(2) : "";
+      csv += [
+        e.date, e.start, e.end, e.break, hrs,
+        e.rate !== null ? Number(e.rate).toFixed(2) : "", earn,
+        (e.tag||'').replace(/,/g,';'),
+        (e.notes||'').replace(/,/g,';')
+      ].join(',') + "\n";
+    });
 
-/* PDF (SUMMARY ONLY) */
-$("exportPdf").onclick = () => {
-  const arr = load();
-  if (!arr.length) return alert("No entries to export.");
+    // TOTALS row
+    const totalMin = arr.reduce((s,e)=>s + Number(e.minutes||0), 0);
+    const totalEarn = arr.reduce((s,e)=>s + (e.rate ? (e.minutes/60*e.rate) : 0), 0);
+    csv += `\nTOTALS,,,"",${(totalMin/60).toFixed(2)},,${totalEarn.toFixed(2)},,\n`;
 
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
+    download('work_hours_full.csv', csv);
+  });
 
-  doc.setFontSize(16);
-  doc.text("Work Hours Summary", 10, 15);
+  // ---------- SUMMARY CSV (weeks + months) ----------
+  exportSummaryCsvBtn.addEventListener('click', ()=>{
+    const arr = loadHistory();
+    if(!arr.length) return alert('No entries to summarize.');
+    const weekly = {}, monthly = {};
+    arr.forEach(e=>{
+      const dt = new Date(e.date);
+      const year = dt.getFullYear();
+      // basic week number (ISO-like)
+      const tmp = new Date(Date.UTC(dt.getFullYear(), dt.getMonth(), dt.getDate()));
+      const dayNum = tmp.getUTCDay() || 7;
+      tmp.setUTCDate(tmp.getUTCDate() + 4 - dayNum);
+      const yearStart = new Date(Date.UTC(tmp.getUTCFullYear(),0,1));
+      const weekNo = Math.ceil((((tmp - yearStart) / 86400000) + 1)/7);
+      const weekKey = `${tmp.getUTCFullYear()}-W${String(weekNo).padStart(2,'0')}`;
 
-  let y = 30;
-  let totalMin = 0, totalEarn = 0;
+      const monthKey = `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}`;
 
-  arr.forEach(e => {
-    const hrs = (e.minutes/60).toFixed(2);
-    const earn = e.rate ? (e.minutes/60*e.rate).toFixed(2) : "0.00";
+      weekly[weekKey] = weekly[weekKey] || { minutes:0, money:0 };
+      monthly[monthKey] = monthly[monthKey] || { minutes:0, money:0 };
 
-    totalMin += e.minutes;
-    totalEarn += parseFloat(earn);
+      weekly[weekKey].minutes += Number(e.minutes||0);
+      monthly[monthKey].minutes += Number(e.minutes||0);
 
+      if(e.rate) {
+        weekly[weekKey].money += (e.minutes/60 * e.rate);
+        monthly[monthKey].money += (e.minutes/60 * e.rate);
+      }
+    });
+
+    let csv = "Period,Hours,Earnings\n";
+    Object.keys(weekly).sort().forEach(k => {
+      csv += `${k},${(weekly[k].minutes/60).toFixed(2)},${weekly[k].money.toFixed(2)}\n`;
+    });
+    Object.keys(monthly).sort().forEach(k => {
+      csv += `${k},${(monthly[k].minutes/60).toFixed(2)},${monthly[k].money.toFixed(2)}\n`;
+    });
+
+    // overall totals
+    const totalMin = arr.reduce((s,e)=>s + Number(e.minutes||0), 0);
+    const totalEarn = arr.reduce((s,e)=>s + (e.rate ? (e.minutes/60*e.rate) : 0), 0);
+    csv += `\nOverall Total,${(totalMin/60).toFixed(2)},${totalEarn.toFixed(2)}\n`;
+
+    download('work_hours_summary.csv', csv);
+  });
+
+  // ---------- EXCEL CSV (Excel-friendly) ----------
+  downloadExcelBtn.addEventListener('click', ()=>{
+    const arr = loadHistory();
+    if(!arr.length) return alert('No data to export.');
+    let csv = "Date,Start,End,Break,Hours,Rate,Earnings,Tag,Notes\r\n";
+    arr.forEach(e=>{
+      const hrs = (e.minutes/60).toFixed(2);
+      const earn = e.rate ? (e.minutes/60 * e.rate).toFixed(2) : "";
+      csv += `"${e.date}","${e.start}","${e.end}","${e.break}","${hrs}","${e.rate !== null ? Number(e.rate).toFixed(2):''}","${earn}","${(e.tag||'').replace(/"/g,"'")}","${(e.notes||'').replace(/"/g,"'")}"\r\n`;
+    });
+
+    // totals for excel
+    const totalMin = arr.reduce((s,e)=>s + Number(e.minutes||0), 0);
+    const totalEarn = arr.reduce((s,e)=>s + (e.rate ? (e.minutes/60*e.rate) : 0), 0);
+    csv += `\r\n"TOTALS","","","", "${(totalMin/60).toFixed(2)}", "","${totalEarn.toFixed(2)}", "" , ""\r\n`;
+
+    download('work_hours_excel.csv', csv, 'application/vnd.ms-excel');
+  });
+
+  // ---------- PDF SUMMARY (simple lines with totals) ----------
+  exportPdfBtn.addEventListener('click', ()=>{
+    const arr = loadHistory();
+    if(!arr.length) return alert('No entries to export.');
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    doc.setFontSize(16);
+    doc.text('Work Hours Summary', 14, 20);
+
+    let y = 36;
+    let totalMin = 0, totalEarn = 0;
     doc.setFontSize(11);
-    doc.text(`${e.date}: ${hrs} hrs — $${earn}`, 10, y);
-    y += 8;
-    if (y > 270) { doc.addPage(); y = 20; }
+    arr.forEach(e => {
+      const hrs = (e.minutes/60).toFixed(2);
+      const earn = e.rate ? (e.minutes/60 * e.rate).toFixed(2) : "0.00";
+      totalMin += e.minutes;
+      totalEarn += parseFloat(earn);
+      doc.text(`${e.date} — ${hrs} h — $${earn}`, 14, y);
+      y += 7;
+      if(y > 275){ doc.addPage(); y = 20; doc.setFontSize(11); }
+    });
+
+    doc.setFontSize(12);
+    doc.setFont(undefined, 'bold');
+    doc.text(`Total Hours: ${(totalMin/60).toFixed(2)}`, 14, y+10);
+    doc.text(`Total Earnings: $${totalEarn.toFixed(2)}`, 14, y+18);
+    doc.setFont(undefined, 'normal');
+
+    doc.save('work_hours_summary.pdf');
   });
 
-     const totalMin = arr.reduce((s,e)=>s+e.minutes,0);
-  const totalEarn = arr.reduce((s,e)=>s+(e.rate ? (e.minutes/60*e.rate) : 0),0);
+  // ---------- PDF ENTRIES (table-like export + totals) ----------
+  exportPdfEntriesBtn.addEventListener('click', ()=>{
+    const arr = loadHistory();
+    if(!arr.length) return alert('No entries to export.');
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation:'landscape' });
 
-  csv += `\nOverall Total,${(totalMin/60).toFixed(2)},${totalEarn.toFixed(2)}\n`;
+    doc.setFontSize(14);
+    doc.text('Work Hours — Full Entries', 12, 18);
+    doc.setFontSize(10);
+    const headers = ['Date','Start','End','Break','Hours','Rate','Earnings','Tag','Notes'];
+    doc.text(headers.join(' | '), 12, 28);
 
-  doc.setFontSize(14);
-  doc.text(`Total Hours: ${(totalMin/60).toFixed(2)}`, 10, y+10);
-  doc.text(`Total Earnings: $${totalEarn.toFixed(2)}`, 10, y+20);
+    let y = 36;
+    arr.forEach(r=>{
+      const row = [
+        r.date, r.start, r.end, String(r.break), (r.minutes/60).toFixed(2),
+        r.rate !== null ? Number(r.rate).toFixed(2) : '', r.rate ? (r.minutes/60*r.rate).toFixed(2) : '',
+        r.tag||'', (r.notes||'').slice(0,40)
+      ];
+      doc.text(row.join(' | '), 12, y);
+      y += 7;
+      if(y > 190){ doc.addPage(); y = 20; doc.setFontSize(10); }
+    });
 
-  doc.save("summary.pdf");
-};
+    // totals block
+    const totalMin = arr.reduce((s,e)=>s + Number(e.minutes||0), 0);
+    const totalEarn = arr.reduce((s,e)=>s + (e.rate ? (e.minutes/60*e.rate) : 0), 0);
 
-/* PDF (ENTRIES TABLE EXPORT) */
-$("exportPdfEntries").onclick = () => {
-  const arr = load();
-  if (!arr.length) return alert("No entries to export.");
+    doc.setFontSize(12);
+    doc.setFont(undefined, 'bold');
+    doc.text(`Total Hours: ${(totalMin/60).toFixed(2)}`, 12, y+12);
+    doc.text(`Total Earnings: $${totalEarn.toFixed(2)}`, 12, y+20);
+    doc.setFont(undefined, 'normal');
 
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ orientation:"landscape" });
-
-  doc.setFontSize(14);
-  doc.text("Work Hours — Full Entry Export", 10, 15);
-
-  const headers = ["Date","Start","End","Break","Hours","Rate","Earn","Tag","Notes"];
-  const rows = arr.map(e => {
-    const hrs = (e.minutes/60).toFixed(2);
-    const earnVal = e.rate ? (e.minutes/60*e.rate).toFixed(2) : "";
-    return [
-      e.date, e.start, e.end, e.break,
-      hrs, e.rate||"", earnVal, e.tag||"", e.notes||""
-    ];
+    doc.save('work_hours_entries.pdf');
   });
 
-  let y = 30;
-  doc.setFontSize(10);
-  doc.text(headers.join("   "), 10, y);
-  y += 7;
+  // Update: export buttons done (CSV, summary, excel, pdf, entries pdf)
 
-  rows.forEach(row => {
-    doc.text(row.join(" | "), 10, y);
-    y += 6;
-    if (y > 190) { doc.addPage(); y = 20; }
+  // Allow check for share fragment on load
+  function checkShareFragment(){
+    const hash = location.hash || '';
+    if(!hash.includes('share=')) return;
+    const part = hash.split('share=')[1];
+    try{
+      const json = decodeURIComponent(atob(part));
+      const obj = JSON.parse(json);
+      const win = window.open('', '_blank');
+      win.document.write('<html><head><title>Shared Summary</title></head><body>');
+      win.document.write('<h2>Shared Work Summary</h2>');
+      win.document.write('<div>Generated: '+(obj.generatedAt || '')+'</div>');
+      win.document.write('<ul>');
+      (obj.entries||[]).forEach(e=> { win.document.write(`<li>${e.date} ${e.start}-${e.end}: ${e.hours}h — $${e.earnings}</li>`); });
+      win.document.write('</ul></body></html>');
+      win.document.close();
+    } catch(e){ console.warn('Invalid share fragment', e); }
+  }
+  checkShareFragment();
+
+  // Theme toggle
+  toggleThemeBtn.addEventListener('click', ()=>{
+    const app = document.getElementById('app');
+    const next = app.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+    app.setAttribute('data-theme', next);
+    toggleThemeBtn.textContent = next === 'dark' ? 'Light' : 'Dark';
   });
-const totalMin = arr.reduce((s,e)=>s+e.minutes,0);
-const totalEarn = arr.reduce((s,e)=>s+(e.rate ? (e.minutes/60*e.rate) : 0),0);
 
-doc.setFontSize(12);
-doc.setFont(undefined, "bold");
-doc.text(`Total Hours: ${(totalMin/60).toFixed(2)}`, 10, y+12);
-doc.text(`Total Earnings: $${totalEarn.toFixed(2)}`, 10, y+20);
-doc.setFont(undefined, "normal");
-  doc.save("entries.pdf");
-};
+  // Utility functions: load/save already defined above. For completeness:
+  // loadHistory(), saveHistory(), idNow() exist earlier.
 
+  // Simple autosave refresh every minute (not necessary but harmless)
+  setInterval(()=>{/* could auto-refresh UI if desired */},60000);
+
+  // End IIFE
 })();
 </script>
-
 </body>
 </html>
