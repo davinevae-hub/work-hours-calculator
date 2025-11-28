@@ -1,817 +1,317 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<title>Work Hours & Time Tracker — Davi Nevae</title>
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-
-<!-- jsPDF CDN for PDF export -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Time Tracker — Davi Nevae</title>
 <style>
-/* ----------------------------
-   Responsive, mobile-first CSS
-   ---------------------------- */
-:root{
-  --bg:#f4f6fb;
-  --card:#ffffff;
-  --muted:#6b7280;
-  --accent:#2563eb;
-  --accent2:#0ea5a4;
-  --danger:#ef4444;
-  --radius:10px;
-  font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial;
-  color-scheme: light;
-}
-[data-theme="dark"]{
-  --bg:#0b1220;
-  --card:#071025;
-  --muted:#9aa4b2;
-  --accent:#3b82f6;
-  --accent2:#14b8a6;
-  --danger:#fb7185;
-  color-scheme: dark;
-}
-html,body{margin:0;padding:0;background:var(--bg);overflow-x:hidden;}
-.app{width:100%;max-width:1100px;margin:0 auto;background:var(--card);border-radius:var(--radius);box-shadow:0 10px 30px rgba(0,0,0,0.1);overflow:hidden;}
-header{display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:18px;border-bottom:1px solid rgba(0,0,0,0.06);background:linear-gradient(90deg,transparent,rgba(0,0,0,0.02));}
-.brand h1{margin:0;font-size:18px;} .brand p{margin:0;color:var(--muted);font-size:12px;}
-.controls{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;}
-.btn{padding:8px 12px;border-radius:8px;border:0;cursor:pointer;font-weight:600;background:var(--accent);color:#fff;}
-.btn.secondary{background:transparent;color:var(--accent);border:1px solid rgba(37,99,235,0.25);}
-.btn.ghost{background:transparent;color:var(--muted);border:1px dashed rgba(0,0,0,0.15);}
-.btn.warn{background:var(--danger);color:#fff;}
-main{padding:18px;display:flex;flex-direction:column;gap:18px;}
-@media(min-width:900px){main{display:grid;grid-template-columns:380px 1fr;gap:18px;}}
-.panel{background:rgba(255,255,255,0.5);padding:14px;border-radius:var(--radius);}
-label{display:block;font-size:13px;margin-bottom:6px;color:var(--muted);}
-input,textarea,select{width:100%;padding:10px;border-radius:8px;border:1px solid rgba(0,0,0,0.08);margin-bottom:10px;font-size:14px;background:transparent;color:inherit;}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
-.timer{display:flex;gap:8px;align-items:center;margin:10px 0;}
-.small{font-size:12px;color:var(--muted);}
-.table-wrap{width:100%;overflow-x:auto;padding:8px;}
-table{width:100%;border-collapse:collapse;font-size:13px;min-width:900px;}
-th,td{padding:10px;border-bottom:1px solid rgba(0,0,0,0.06);text-align:left;}
-th{font-weight:700;color:var(--muted);font-size:12px;}
-.chip{padding:6px 10px;border-radius:999px;background:rgba(37,99,235,0.1);color:var(--accent);font-weight:600;font-size:13px;}
-footer{padding:12px;border-top:1px solid rgba(0,0,0,0.06);display:flex;justify-content:space-between;flex-wrap:wrap;}
-.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.35);display:none;align-items:center;justify-content:center;z-index:60;}
-.modal{background:var(--card);padding:14px;border-radius:10px;width:94%;max-width:700px;}
-.summary-card{padding:12px;border-radius:8px;background:rgba(0,0,0,0.03);margin-top:12px;}
-@media(max-width:500px){table{font-size:12px;} header{justify-content:flex-start;} .controls{width:100%;justify-content:flex-start;}}
+    :root {
+        --primary: #2563eb;
+        --bg: #f3f4f6;
+        --card: #ffffff;
+        --text: #1f2937;
+        --border: #e5e7eb;
+    }
+
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        margin: 0;
+        padding: 20px;
+        line-height: 1.5;
+    }
+
+    .container {
+        max-width: 900px;
+        margin: 0 auto;
+        display: grid;
+        gap: 20px;
+    }
+
+    /* Cards */
+    .card {
+        background: var(--card);
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Header */
+    header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+    h1 { margin: 0; font-size: 1.5rem; }
+    .subtitle { font-size: 0.875rem; color: #6b7280; }
+
+    /* Form Grid */
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 15px;
+        align-items: end;
+    }
+
+    .form-group { display: flex; flex-direction: column; }
+    label { font-size: 0.85rem; font-weight: 600; margin-bottom: 5px; color: #4b5563; }
+    
+    input, button {
+        padding: 10px;
+        border-radius: 6px;
+        border: 1px solid var(--border);
+        font-size: 1rem;
+    }
+
+    button {
+        background: var(--primary);
+        color: white;
+        border: none;
+        cursor: pointer;
+        font-weight: 600;
+        transition: opacity 0.2s;
+    }
+    button:hover { opacity: 0.9; }
+    button.secondary { background: white; color: var(--text); border: 1px solid var(--border); }
+    button.danger { background: #ef4444; color: white; }
+
+    /* Table */
+    .table-container { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 600px; }
+    th, td { text-align: left; padding: 12px; border-bottom: 1px solid var(--border); }
+    th { background: #f9fafb; font-size: 0.85rem; color: #6b7280; }
+    
+    /* Summary Bar */
+    .summary {
+        display: flex;
+        gap: 20px;
+        margin-top: 20px;
+        background: #e0e7ff;
+        padding: 15px;
+        border-radius: 8px;
+        color: var(--primary);
+        font-weight: bold;
+    }
+
+    @media (max-width: 600px) {
+        .form-grid { grid-template-columns: 1fr 1fr; }
+        .full-width-mobile { grid-column: span 2; }
+    }
 </style>
 </head>
 <body>
-<div class="app" id="app" data-theme="light">
-  <header>
-    <div class="brand">
-      <h1>Work Hours & Time Tracker</h1>
-      <p>Fast • Private • Exportable — Davi Nevae</p>
-    </div>
-    <div class="controls" role="toolbar" aria-label="Primary controls">
-      <button id="toggleTheme" class="btn secondary" title="Toggle theme">Dark</button>
-      <button id="generateLink" class="btn secondary">Share</button>
-      <button id="importCsv" class="btn ghost">Import CSV</button>
-      <button id="exportCsv" class="btn">Export CSV</button>
-      <button id="exportSummaryCsv" class="btn secondary">Summary CSV</button>
-      <button id="downloadExcel" class="btn secondary">Excel CSV</button>
-      <button id="exportPdf" class="btn secondary">Export PDF</button>
-      <button id="exportPdfEntries" class="btn secondary">Entries PDF</button>
-    </div>
-  </header>
 
-  <main>
-    <!-- LEFT panel: form + timer -->
-    <aside class="panel" aria-labelledby="entryFormTitle">
-      <h2 id="entryFormTitle" class="small">Create / Track Session</h2>
-
-      <label for="date">Date</label>
-      <input id="date" type="date" />
-
-      <div class="grid2">
+<div class="container">
+    
+    <header>
         <div>
-          <label for="start">Start time</label>
-          <input id="start" type="time" />
+            <h1>Work & Time Tracker</h1>
+            <div class="subtitle">Built by Davi Nevae LLC</div>
         </div>
-        <div>
-          <label for="end">End time</label>
-          <input id="end" type="time" />
-        </div>
-      </div>
+        <button onclick="exportCSV()" class="secondary">Download CSV</button>
+    </header>
 
-      <label for="break">Break minutes</label>
-      <input id="break" type="number" min="0" value="0" />
-
-      <label for="rate">Hourly rate ($)</label>
-      <input id="rate" type="number" min="0" step="0.01" placeholder="e.g. 25.00" />
-
-      <label for="tax">Estimated tax rate (%)</label>
-      <input id="tax" type="number" min="0" max="100" step="0.1" value="22" />
-
-      <label for="tag">Client / Tag (optional)</label>
-      <input id="tag" type="text" placeholder="Client or project" />
-
-      <label for="notes">Notes (optional)</label>
-      <textarea id="notes" rows="2" placeholder="What did you work on?"></textarea>
-
-      <div class="timer">
-        <button id="startTimer" class="btn">Start Timer</button>
-        <button id="stopTimer" class="btn secondary" disabled>Stop Timer</button>
-        <div id="liveTimer" class="small">Timer inactive</div>
-      </div>
-
-      <div class="row" style="display:flex;gap:8px;margin-top:8px;">
-        <button id="calcSave" class="btn">Calculate & Save</button>
-        <button id="clearForm" class="btn secondary">Clear</button>
-      </div>
-
-      <div id="instantSummary" class="summary-card" style="display:none;">
-        <div class="small">Session: <span id="sessionText"></span></div>
-        <div class="small muted">Duration: <span id="durationText"></span> — Earnings: <span id="earningsText"></span></div>
-      </div>
-
-      <div style="margin-top:12px;" class="small">This app stores history in your browser (localStorage). Export to keep backups.</div>
-    </aside>
-
-    <!-- RIGHT panel: history, table, totals -->
-    <section class="right">
-      <div class="panel toolbar" style="display:flex;flex-direction:column;gap:10px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;">
-          <div>
-            <strong>History</strong>
-            <div class="small">Saved sessions (local)</div>
-          </div>
-          <div style="display:flex;gap:8px;align-items:center">
-            <button id="clearHistory" class="btn ghost">Clear History</button>
-            <button id="printSummary" class="btn secondary">Print</button>
-          </div>
-        </div>
-
-        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-          <label class="small" style="margin:0">Show:</label>
-          <select id="filterRange">
-            <option value="all">All time</option>
-            <option value="30">Last 30 days</option>
-            <option value="7">Last 7 days</option>
-            <option value="week">This week</option>
-            <option value="month">This month</option>
-          </select>
-          <label class="small" style="margin:0">Group:</label>
-          <select id="groupBy">
-            <option value="none">None</option>
-            <option value="day">Day</option>
-            <option value="week">Week</option>
-            <option value="month">Month</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="table-wrap panel" role="region" aria-label="History table">
-        <table id="historyTable" role="table">
-          <thead>
-            <tr>
-              <th>Date</th><th>Start</th><th>End</th><th>Break</th>
-              <th>Hours</th><th>Rate</th><th>Earnings</th><th>Tag</th><th>Notes</th><th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="historyBody"></tbody>
-        </table>
-      </div>
-
-      <div class="panel" style="display:flex;flex-direction:column;gap:10px;">
-        <div style="display:flex;gap:12px;align-items:center;">
-          <div class="chip" id="totalHours">Total: 0.00h</div>
-          <div class="chip" id="totalEarnings">$0.00</div>
-          <div class="small">Entries: <span id="entryCount">0</span></div>
-        </div>
-
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
-          <button id="exportSummaryCsv" class="btn">Export Summary CSV</button>
-          <button id="downloadExcel" class="btn secondary">Download (Excel CSV)</button>
-          <button id="exportPdfEntries" class="btn secondary">Export PDF (entries)</button>
-        </div>
-
-        <div style="margin-top:6px;">
-          <h3 style="margin:0;font-size:14px;">Weekly / Monthly Summaries</h3>
-          <div id="summaries" class="small" style="margin-top:8px;"></div>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <footer>
-    <div class="small">Built by Davi Nevae LLC</div>
-    <div class="small">Local storage key: <code>dnw_master_v3</code></div>
-  </footer>
-</div>
-
-<!-- Edit modal -->
-<div id="modal" class="modal-backdrop" role="dialog" aria-hidden="true">
-  <div class="modal" role="document">
-    <h3>Edit Entry</h3>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-      <div><label>Date</label><input id="m_date" type="date" /></div>
-      <div><label>Start</label><input id="m_start" type="time" /></div>
-      <div><label>End</label><input id="m_end" type="time" /></div>
-      <div><label>Break (min)</label><input id="m_break" type="number" min="0" /></div>
-      <div><label>Rate ($)</label><input id="m_rate" type="number" step="0.01" /></div>
-      <div><label>Tag</label><input id="m_tag" type="text" /></div>
-      <div style="grid-column:1/-1;"><label>Notes</label><textarea id="m_notes" rows="3"></textarea></div>
+    <div class="card">
+        <form id="timeForm" onsubmit="addEntry(event)">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Date</label>
+                    <input type="date" id="date" required>
+                </div>
+                <div class="form-group">
+                    <label>Start Time</label>
+                    <input type="time" id="start" required>
+                </div>
+                <div class="form-group">
+                    <label>End Time</label>
+                    <input type="time" id="end" required>
+                </div>
+                <div class="form-group">
+                    <label>Break (Mins)</label>
+                    <input type="number" id="breakTime" value="0" min="0">
+                </div>
+                <div class="form-group">
+                    <label>Rate ($/hr)</label>
+                    <input type="number" id="rate" value="50" step="0.01">
+                </div>
+                <div class="form-group full-width-mobile">
+                    <label>Description / Tag</label>
+                    <input type="text" id="desc" placeholder="e.g. Client Meeting">
+                </div>
+                <div class="form-group full-width-mobile">
+                    <button type="submit">Add Entry</button>
+                </div>
+            </div>
+        </form>
     </div>
-    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:10px;">
-      <button id="modalCancel" class="btn secondary">Cancel</button>
-      <button id="modalSave" class="btn">Save</button>
+
+    <div class="card">
+        <div class="summary">
+            <span>Total Hours: <span id="totalHours">0.00</span> h</span>
+            <span>Total Earnings: $<span id="totalMoney">0.00</span></span>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Times</th>
+                        <th>Break</th>
+                        <th>Desc</th>
+                        <th>Hrs</th>
+                        <th>Earned</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="logBody">
+                    </tbody>
+            </table>
+        </div>
+        
+        <div style="margin-top:15px; text-align:right;">
+             <button onclick="clearAllData()" class="secondary" style="font-size:0.8rem; color:#ef4444; border-color:#fca5a5;">Reset All Data</button>
+        </div>
     </div>
-  </div>
 </div>
 
 <script>
-/* ============================================================
-   Full JS — Data model, UI bindings, exports with totals
-   ============================================================ */
-(function(){
+    // --- CONFIGURATION ---
+    const STORAGE_KEY = "davi_nevae_tracker_v1";
 
-  const STORAGE_KEY = 'dnw_master_v3';
-
-  // DOM refs
-  const $ = id => document.getElementById(id);
-  const dateInput = $('date');
-  const startInput = $('start');
-  const endInput = $('end');
-  const breakInput = $('break');
-  const rateInput = $('rate');
-  const taxInput = $('tax');
-  const tagInput = $('tag');
-  const notesInput = $('notes');
-
-  const historyBody = $('historyBody');
-  const totalHoursChip = $('totalHours');
-  const totalEarningsChip = $('totalEarnings');
-  const entryCountSpan = $('entryCount');
-  const summariesDiv = $('summaries');
-
-  const startTimerBtn = $('startTimer');
-  const stopTimerBtn = $('stopTimer');
-  const liveTimer = $('liveTimer');
-
-  // Export/import buttons
-  const exportCsvBtn = $('exportCsv');
-  const exportSummaryCsvBtn = $('exportSummaryCsv');
-  const downloadExcelBtn = $('downloadExcel');
-  const exportPdfBtn = $('exportPdf');
-  const exportPdfEntriesBtn = $('exportPdfEntries');
-  const importCsvBtn = $('importCsv');
-  const clearHistoryBtn = $('clearHistory');
-  const printSummaryBtn = $('printSummary');
-  const generateLinkBtn = $('generateLink');
-  const toggleThemeBtn = $('toggleTheme');
-
-  const filterRangeEl = $('filterRange');
-  const groupByEl = $('groupBy');
-
-  // Modal refs
-  const modal = $('modal');
-  const m_date = $('m_date');
-  const m_start = $('m_start');
-  const m_end = $('m_end');
-  const m_break = $('m_break');
-  const m_rate = $('m_rate');
-  const m_tag = $('m_tag');
-  const m_notes = $('m_notes');
-  const modalSave = $('modalSave');
-  const modalCancel = $('modalCancel');
-
-  // Prefill date
-  dateInput.value = new Date().toISOString().slice(0,10);
-
-  // Helpers
-  function loadHistory(){ try{ return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch(e){ return []; } }
-  function saveHistory(h){ localStorage.setItem(STORAGE_KEY, JSON.stringify(h)); }
-  function idNow(){ return 'id_' + Date.now() + '_' + Math.random().toString(36).slice(2,8); }
-
-  function toTwo(n){ return String(n).padStart(2,'0'); }
-  function parseTime(str){ if(!str || !str.includes(':')) return null; const [hh,mm]=str.split(':').map(Number); return {hh,mm}; }
-  function minutesFromHM(h,m){ return (Number(h)||0)*60 + (Number(m)||0); }
-  function minutesToHHMM(mins){ const h=Math.floor(mins/60), m=Math.round(mins%60); return `${toTwo(h)}:${toTwo(m)}`; }
-
-  // calculates duration handling overnight
-  function calcDurationMinutes(startStr,endStr,breakMin){
-    const s = parseTime(startStr), e = parseTime(endStr);
-    if(!s || !e) return 0;
-    let sMin = minutesFromHM(s.hh,s.mm), eMin = minutesFromHM(e.hh,e.mm);
-    if(eMin < sMin) eMin += 24*60;
-    let dur = eMin - sMin - Number(breakMin || 0);
-    if(dur < 0) dur = 0;
-    return Math.round(dur);
-  }
-
-  function computeEarnings(minutes,rate){ if(!rate) return 0; return Math.round((minutes/60) * rate * 100) / 100; }
-
-  // Timer
-  let timerInterval = null;
-  let timerStartTs = null;
-  if(startTimerBtn){
-    startTimerBtn.addEventListener('click', ()=>{
-      timerStartTs = Date.now();
-      startTimerBtn.disabled = true;
-      stopTimerBtn.disabled = false;
-      if(liveTimer) liveTimer.textContent = 'Timer running — 00:00:00';
-      timerInterval = setInterval(()=>{
-        const elapsed = Date.now() - timerStartTs;
-        const h = Math.floor(elapsed/3600000), m = Math.floor((elapsed%3600000)/60000), s=Math.floor((elapsed%60000)/1000);
-        if(liveTimer) liveTimer.textContent = `Timer running — ${toTwo(h)}:${toTwo(m)}:${toTwo(s)}`;
-      },500);
-    });
-  }
-  if(stopTimerBtn){
-    stopTimerBtn.addEventListener('click', ()=>{
-      if(!timerStartTs) return;
-      clearInterval(timerInterval);
-      const endTs = Date.now();
-      const sDt = new Date(timerStartTs), eDt = new Date(endTs);
-      dateInput.value = sDt.toISOString().slice(0,10);
-      startInput.value = `${toTwo(sDt.getHours())}:${toTwo(sDt.getMinutes())}`;
-      endInput.value = `${toTwo(eDt.getHours())}:${toTwo(eDt.getMinutes())}`;
-      startTimerBtn.disabled = false;
-      stopTimerBtn.disabled = true;
-      if(liveTimer) liveTimer.textContent = `Last session: ${startInput.value} → ${endInput.value}`;
-      timerStartTs = null;
-      timerInterval = null;
-    });
-  }
-
-  // Add entry
-  function addEntry({date,start,end,breakMinutes,rate,tag,notes}){
-    if(!date || !start || !end) { alert('Please enter date, start and end time.'); return false; }
-    const minutes = calcDurationMinutes(start,end,breakMinutes||0);
-    if(minutes <= 0) { alert('Calculated duration is zero. Check times and break minutes.'); return false; }
-    const entry = {
-      id: idNow(),
-      date,
-      start,
-      end,
-      break: Number(breakMinutes||0),
-      minutes,
-      rate: rate ? Number(rate) : null,
-      tag: tag || '',
-      notes: notes || '',
-      createdAt: new Date().toISOString()
-    };
-    const h = loadHistory(); h.unshift(entry); saveHistory(h);
-    return true;
-  }
-
-  // Render history table & totals
-  function renderHistory(){
-    const all = loadHistory();
-    // filtering not implemented here (keeps simple) - could apply filterRangeEl.value
-    const entries = all.slice();
-    historyBody.innerHTML = '';
-    entries.forEach((ent, idx) => {
-      const tr = document.createElement('tr');
-      const hoursDecimal = (ent.minutes/60).toFixed(2);
-      const earnings = ent.rate ? computeEarnings(ent.minutes, ent.rate).toFixed(2) : '';
-      tr.innerHTML = `
-        <td>${ent.date}</td>
-        <td>${ent.start}</td>
-        <td>${ent.end}</td>
-        <td>${ent.break}</td>
-        <td>${hoursDecimal}</td>
-        <td>${ent.rate ? '$'+Number(ent.rate).toFixed(2) : ''}</td>
-        <td>${earnings ? '$'+earnings : ''}</td>
-        <td>${ent.tag || ''}</td>
-        <td>${(ent.notes || '').replace(/</g,'&lt;')}</td>
-        <td>
-          <button class="btn secondary btn-edit" data-id="${ent.id}">Edit</button>
-          <button class="btn ghost btn-delete" data-id="${ent.id}">Delete</button>
-        </td>
-      `;
-      historyBody.appendChild(tr);
+    // --- INITIALIZATION ---
+    document.addEventListener("DOMContentLoaded", () => {
+        // Set default date to today
+        document.getElementById("date").valueAsDate = new Date();
+        renderTable();
     });
 
-    // attach handlers
-    document.querySelectorAll('.btn-delete').forEach(btn=>{
-      btn.addEventListener('click', ()=> {
-        const id = btn.getAttribute('data-id');
-        if(!confirm('Delete this entry?')) return;
-        let full = loadHistory();
-        full = full.filter(x => x.id !== id);
-        saveHistory(full);
-        renderHistory();
-      });
-    });
-
-    document.querySelectorAll('.btn-edit').forEach(btn=>{
-      btn.addEventListener('click', ()=> openEditModal(btn.getAttribute('data-id')));
-    });
-
-    // totals
-    const totalMin = entries.reduce((s,e)=> s + (Number(e.minutes)||0), 0);
-    const totalEarnings = entries.reduce((s,e)=> s + (e.rate ? computeEarnings(e.minutes,e.rate):0), 0);
-    totalHoursChip.textContent = `Total: ${(totalMin/60).toFixed(2)}h`;
-    totalEarningsChip.textContent = `$${totalEarnings.toFixed(2)}`;
-    entryCountSpan.textContent = entries.length;
-
-    // render basic summaries (last 6 months/weeks)
-    renderSummaries(entries);
-  }
-
-  function renderSummaries(fullHistory){
-    if(!fullHistory || !fullHistory.length){ summariesDiv.innerHTML = '<div class="small">No data yet.</div>'; return; }
-    const byWeek = {}, byMonth = {};
-    fullHistory.forEach(e=>{
-      const d = new Date(e.date + 'T00:00:00');
-      // ISO week
-      const tmp = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
-      const dayNum = tmp.getUTCDay() || 7;
-      tmp.setUTCDate(tmp.getUTCDate() + 4 - dayNum);
-      const yearStart = new Date(Date.UTC(tmp.getUTCFullYear(),0,1));
-      const weekNo = Math.ceil((((tmp - yearStart) / 86400000) + 1)/7);
-      const weekKey = `${tmp.getUTCFullYear()}-W${String(weekNo).padStart(2,'0')}`;
-      byWeek[weekKey] = byWeek[weekKey] || { minutes:0, earnings:0, count:0 };
-      byWeek[weekKey].minutes += Number(e.minutes||0);
-      byWeek[weekKey].earnings += e.rate ? computeEarnings(e.minutes,e.rate) : 0;
-      byWeek[weekKey].count++;
-
-      const monthKey = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
-      byMonth[monthKey] = byMonth[monthKey] || { minutes:0, earnings:0, count:0 };
-      byMonth[monthKey].minutes += Number(e.minutes||0);
-      byMonth[monthKey].earnings += e.rate ? computeEarnings(e.minutes,e.rate) : 0;
-      byMonth[monthKey].count++;
-    });
-
-    const weekKeys = Object.keys(byWeek).sort().slice(-6);
-    const monthKeys = Object.keys(byMonth).sort().slice(-6);
-    let html = '<div><strong>Recent weeks</strong></div><ul>';
-    weekKeys.forEach(k => {
-      const v = byWeek[k];
-      html += `<li>${k}: ${(v.minutes/60).toFixed(2)}h — $${v.earnings.toFixed(2)} (${v.count} entries)</li>`;
-    });
-    html += '</ul><div style="margin-top:8px;"><strong>Recent months</strong></div><ul>';
-    monthKeys.forEach(k => {
-      const v = byMonth[k];
-      html += `<li>${k}: ${(v.minutes/60).toFixed(2)}h — $${v.earnings.toFixed(2)} (${v.count} entries)</li>`;
-    });
-    html += '</ul>';
-    summariesDiv.innerHTML = html;
-  }
-
-  // Edit modal
-  let editingId = null;
-  function openEditModal(id){
-    const h = loadHistory();
-    const e = h.find(x=>x.id===id);
-    if(!e) return;
-    editingId = id;
-    m_date.value = e.date;
-    m_start.value = e.start;
-    m_end.value = e.end;
-    m_break.value = e.break;
-    m_rate.value = e.rate !== null ? e.rate : '';
-    m_tag.value = e.tag || '';
-    m_notes.value = e.notes || '';
-    modal.style.display = 'flex';
-    modal.setAttribute('aria-hidden','false');
-  }
-  modalCancel.addEventListener('click', ()=> { modal.style.display='none'; modal.setAttribute('aria-hidden','true'); editingId=null; });
-  modalSave.addEventListener('click', ()=>{
-    const h = loadHistory();
-    const idx = h.findIndex(x=>x.id===editingId);
-    if(idx===-1){ alert('Entry missing'); modal.style.display='none'; return; }
-    const minutes = calcDurationMinutes(m_start.value,m_end.value,m_break.value);
-    h[idx].date = m_date.value;
-    h[idx].start = m_start.value;
-    h[idx].end = m_end.value;
-    h[idx].break = Number(m_break.value||0);
-    h[idx].minutes = minutes;
-    h[idx].rate = m_rate.value ? Number(m_rate.value) : null;
-    h[idx].tag = m_tag.value;
-    h[idx].notes = m_notes.value;
-    h[idx].updatedAt = new Date().toISOString();
-    saveHistory(h);
-    modal.style.display='none';
-    renderHistory();
-  });
-
-  // Clear form
-  $('clearForm').addEventListener('click', ()=>{
-    dateInput.value = new Date().toISOString().slice(0,10);
-    startInput.value = '';
-    endInput.value = '';
-    breakInput.value = 0;
-    rateInput.value = '';
-    taxInput.value = 22;
-    tagInput.value = '';
-    notesInput.value = '';
-    document.getElementById('instantSummary').style.display='none';
-  });
-
-  // Save entry
-  $('calcSave').addEventListener('click', ()=>{
-    const date = dateInput.value, start = startInput.value, end = endInput.value;
-    const breakMin = Number(breakInput.value||0);
-    const rate = rateInput.value ? Number(rateInput.value) : null;
-    const tag = tagInput.value, notes = notesInput.value;
-    const ok = addEntry({date,start,end,breakMinutes:breakMin,rate,tag,notes});
-    if(ok){
-      const minutes = calcDurationMinutes(start,end,breakMin);
-      const earnings = computeEarnings(minutes,rate);
-      document.getElementById('instantSummary').style.display='block';
-      document.getElementById('sessionText').textContent = `${date} ${start} → ${end}`;
-      document.getElementById('durationText').textContent = `${(minutes/60).toFixed(2)}h`;
-      document.getElementById('earningsText').textContent = rate ? ('$'+earnings.toFixed(2)) : '—';
-      renderHistory();
+    // --- CORE LOGIC ---
+    function getEntries() {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
     }
-  });
 
-  // Initial render
-  renderHistory();
+    function saveEntries(entries) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+        renderTable();
+    }
 
-  // Clear history
-  clearHistoryBtn.addEventListener('click', ()=>{
-    if(!confirm('Clear all local history? This cannot be undone.')) return;
-    localStorage.removeItem(STORAGE_KEY);
-    renderHistory();
-  });
+    function addEntry(e) {
+        e.preventDefault();
+        
+        const date = document.getElementById("date").value;
+        const start = document.getElementById("start").value;
+        const end = document.getElementById("end").value;
+        const breakMins = parseFloat(document.getElementById("breakTime").value) || 0;
+        const rate = parseFloat(document.getElementById("rate").value) || 0;
+        const desc = document.getElementById("desc").value;
 
-  // Print summary
-  printSummaryBtn.addEventListener('click', ()=>{
-    const h = loadHistory();
-    if(!h.length){ alert('No history to print.'); return; }
-    const win = window.open('', '_blank');
-    const totalMin = h.reduce((s,e)=>s + (e.minutes||0),0);
-    const totalEarnings = h.reduce((s,e)=> s + (e.rate ? computeEarnings(e.minutes,e.rate) : 0),0);
-    const rows = h.map(r => `<tr><td>${r.date}</td><td>${r.start}</td><td>${r.end}</td><td>${(r.minutes/60).toFixed(2)}</td><td>${r.rate? '$'+Number(r.rate).toFixed(2):''}</td><td>${r.rate? '$'+computeEarnings(r.minutes,r.rate).toFixed(2):''}</td><td>${r.tag||''}</td></tr>`).join('');
-    win.document.write(`
-      <html><head><title>Work Hours Summary</title>
-      <style>body{font-family:Arial;padding:20px} table{width:100%;border-collapse:collapse} td,th{border:1px solid #ccc;padding:8px}</style>
-      </head><body>
-      <h2>Work Hours Summary</h2>
-      <div>Total hours: ${(totalMin/60).toFixed(2)} — Total earnings: $${totalEarnings.toFixed(2)}</div>
-      <table><thead><tr><th>Date</th><th>Start</th><th>End</th><th>Hours</th><th>Rate</th><th>Earnings</th><th>Tag</th></tr></thead><tbody>
-      ${rows}
-      </tbody></table>
-      <script>window.print();</script>
-      </body></html>
-    `);
-    win.document.close();
-  });
+        // Calculate Duration
+        let startTime = new Date(`2000-01-01T${start}`);
+        let endTime = new Date(`2000-01-01T${end}`);
+        
+        // Handle overnight shifts (if end time is before start time)
+        if (endTime < startTime) {
+            endTime.setDate(endTime.getDate() + 1);
+        }
 
-  // Shareable link (encodes last 10 entries)
-  generateLinkBtn.addEventListener('click', ()=>{
-    const h = loadHistory(); if(!h.length){ alert('No history to share.'); return; }
-    const N = Math.min(10,h.length);
-    const snippet = h.slice(0,N).map(e=>({date:e.date,start:e.start,end:e.end,hours:(e.minutes/60).toFixed(2),earnings:e.rate?computeEarnings(e.minutes,e.rate).toFixed(2):''}));
-    const json = JSON.stringify({generatedAt:new Date().toISOString(),entries:snippet});
-    const b64 = btoa(encodeURIComponent(json));
-    const url = location.origin + location.pathname + '#share=' + b64;
-    navigator.clipboard.writeText(url).then(()=> alert('Shareable summary link copied to clipboard.'));
-  });
+        let diffMs = endTime - startTime;
+        let diffMins = Math.floor(diffMs / 60000) - breakMins;
+        
+        if (diffMins <= 0) {
+            alert("Error: Duration is zero or negative after break deduction.");
+            return;
+        }
 
-  // Import CSV (append)
-  importCsvBtn.addEventListener('click', ()=>{
-    const input = document.createElement('input'); input.type='file'; input.accept='.csv';
-    input.addEventListener('change', (e)=>{
-      const file = e.target.files[0]; if(!file) return;
-      const reader = new FileReader();
-      reader.onload = (ev)=>{
-        const txt = ev.target.result;
-        const lines = txt.split(/\r?\n/).filter(Boolean);
-        if(lines.length < 2){ alert('CSV empty.'); return; }
-        const headers = lines[0].split(',').map(h=>h.replace(/^"|"$/g,'').trim());
-        const arr = loadHistory();
-        lines.slice(1).forEach(line=>{
-          const values = line.match(/("([^"]|"")*"|[^,]+)/g).map(v=>v.replace(/^"|"$/g,'').replace(/""/g,'"'));
-          const rec = {};
-          headers.forEach((h,i)=> rec[h]=values[i]);
-          arr.unshift({
-            id: rec.id || idNow(),
-            date: rec.date || new Date().toISOString().slice(0,10),
-            start: rec.start || '',
-            end: rec.end || '',
-            break: Number(rec.break||0),
-            minutes: Number(rec.minutes||0),
-            rate: rec.rate ? Number(rec.rate) : null,
-            tag: rec.tag || '',
-            notes: rec.notes || '',
-            createdAt: rec.createdAt || new Date().toISOString()
-          });
+        const hours = parseFloat((diffMins / 60).toFixed(2));
+        const earnings = parseFloat((hours * rate).toFixed(2));
+
+        const newEntry = {
+            id: Date.now(),
+            date,
+            start,
+            end,
+            breakMins,
+            rate,
+            desc,
+            hours,
+            earnings
+        };
+
+        const entries = getEntries();
+        entries.unshift(newEntry); // Add to top
+        saveEntries(entries);
+        
+        // Optional: Clear description but keep rate/date for fast entry
+        document.getElementById("desc").value = "";
+    }
+
+    function deleteEntry(id) {
+        if(confirm("Delete this entry?")) {
+            const entries = getEntries().filter(e => e.id !== id);
+            saveEntries(entries);
+        }
+    }
+
+    function clearAllData() {
+        if(confirm("Are you sure? This will delete all history.")) {
+            localStorage.removeItem(STORAGE_KEY);
+            renderTable();
+        }
+    }
+
+    function renderTable() {
+        const entries = getEntries();
+        const tbody = document.getElementById("logBody");
+        tbody.innerHTML = "";
+
+        let sumHours = 0;
+        let sumMoney = 0;
+
+        entries.forEach(e => {
+            sumHours += e.hours;
+            sumMoney += e.earnings;
+
+            const row = `
+                <tr>
+                    <td>${e.date}</td>
+                    <td>${e.start} - ${e.end}</td>
+                    <td>${e.breakMins}m</td>
+                    <td>${e.desc}</td>
+                    <td><strong>${e.hours}</strong></td>
+                    <td>$${e.earnings.toFixed(2)}</td>
+                    <td><button onclick="deleteEntry(${e.id})" class="danger" style="padding:4px 8px; font-size:0.8rem;">×</button></td>
+                </tr>
+            `;
+            tbody.innerHTML += row;
         });
-        saveHistory(arr);
-        renderHistory();
-        alert('CSV imported.');
-      };
-      reader.readAsText(file);
-    });
-    input.click();
-  });
 
-  /* -----------------------
-     EXPORT / DOWNLOAD HELPERS
-     ----------------------- */
-  function download(filename, content, type='text/csv'){
-    const blob = new Blob([content], { type });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-  }
+        document.getElementById("totalHours").innerText = sumHours.toFixed(2);
+        document.getElementById("totalMoney").innerText = sumMoney.toFixed(2);
+    }
 
-  // ---------- FULL CSV EXPORT (with totals) ----------
-  exportCsvBtn.addEventListener('click', ()=>{
-    const arr = loadHistory();
-    if(!arr.length) return alert('No entries to export.');
-    let csv = "Date,Start,End,Break,Hours,Rate,Earnings,Tag,Notes\n";
-    arr.forEach(e=>{
-      const hrs = (e.minutes/60).toFixed(2);
-      const earn = e.rate ? (e.minutes/60 * e.rate).toFixed(2) : "";
-      csv += [
-        e.date, e.start, e.end, e.break, hrs,
-        e.rate !== null ? Number(e.rate).toFixed(2) : "", earn,
-        (e.tag||'').replace(/,/g,';'),
-        (e.notes||'').replace(/,/g,';')
-      ].join(',') + "\n";
-    });
+    function exportCSV() {
+        const entries = getEntries();
+        if (entries.length === 0) { alert("No data to export"); return; }
 
-    // TOTALS row
-    const totalMin = arr.reduce((s,e)=>s + Number(e.minutes||0), 0);
-    const totalEarn = arr.reduce((s,e)=>s + (e.rate ? (e.minutes/60*e.rate) : 0), 0);
-    csv += `\nTOTALS,,,"",${(totalMin/60).toFixed(2)},,${totalEarn.toFixed(2)},,\n`;
+        let csv = "Date,Start,End,Break(m),Description,Hours,Rate,Earnings\n";
+        
+        entries.forEach(e => {
+            // Escape commas in description to prevent breaking CSV
+            const safeDesc = `"${e.desc.replace(/"/g, '""')}"`; 
+            csv += `${e.date},${e.start},${e.end},${e.breakMins},${safeDesc},${e.hours},${e.rate},${e.earnings}\n`;
+        });
 
-    download('work_hours_full.csv', csv);
-  });
-
-  // ---------- SUMMARY CSV (weeks + months) ----------
-  exportSummaryCsvBtn.addEventListener('click', ()=>{
-    const arr = loadHistory();
-    if(!arr.length) return alert('No entries to summarize.');
-    const weekly = {}, monthly = {};
-    arr.forEach(e=>{
-      const dt = new Date(e.date);
-      const year = dt.getFullYear();
-      // basic week number (ISO-like)
-      const tmp = new Date(Date.UTC(dt.getFullYear(), dt.getMonth(), dt.getDate()));
-      const dayNum = tmp.getUTCDay() || 7;
-      tmp.setUTCDate(tmp.getUTCDate() + 4 - dayNum);
-      const yearStart = new Date(Date.UTC(tmp.getUTCFullYear(),0,1));
-      const weekNo = Math.ceil((((tmp - yearStart) / 86400000) + 1)/7);
-      const weekKey = `${tmp.getUTCFullYear()}-W${String(weekNo).padStart(2,'0')}`;
-
-      const monthKey = `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}`;
-
-      weekly[weekKey] = weekly[weekKey] || { minutes:0, money:0 };
-      monthly[monthKey] = monthly[monthKey] || { minutes:0, money:0 };
-
-      weekly[weekKey].minutes += Number(e.minutes||0);
-      monthly[monthKey].minutes += Number(e.minutes||0);
-
-      if(e.rate) {
-        weekly[weekKey].money += (e.minutes/60 * e.rate);
-        monthly[monthKey].money += (e.minutes/60 * e.rate);
-      }
-    });
-
-    let csv = "Period,Hours,Earnings\n";
-    Object.keys(weekly).sort().forEach(k => {
-      csv += `${k},${(weekly[k].minutes/60).toFixed(2)},${weekly[k].money.toFixed(2)}\n`;
-    });
-    Object.keys(monthly).sort().forEach(k => {
-      csv += `${k},${(monthly[k].minutes/60).toFixed(2)},${monthly[k].money.toFixed(2)}\n`;
-    });
-
-    // overall totals
-    const totalMin = arr.reduce((s,e)=>s + Number(e.minutes||0), 0);
-    const totalEarn = arr.reduce((s,e)=>s + (e.rate ? (e.minutes/60*e.rate) : 0), 0);
-    csv += `\nOverall Total,${(totalMin/60).toFixed(2)},${totalEarn.toFixed(2)}\n`;
-
-    download('work_hours_summary.csv', csv);
-  });
-
-  // ---------- EXCEL CSV (Excel-friendly) ----------
-  downloadExcelBtn.addEventListener('click', ()=>{
-    const arr = loadHistory();
-    if(!arr.length) return alert('No data to export.');
-    let csv = "Date,Start,End,Break,Hours,Rate,Earnings,Tag,Notes\r\n";
-    arr.forEach(e=>{
-      const hrs = (e.minutes/60).toFixed(2);
-      const earn = e.rate ? (e.minutes/60 * e.rate).toFixed(2) : "";
-      csv += `"${e.date}","${e.start}","${e.end}","${e.break}","${hrs}","${e.rate !== null ? Number(e.rate).toFixed(2):''}","${earn}","${(e.tag||'').replace(/"/g,"'")}","${(e.notes||'').replace(/"/g,"'")}"\r\n`;
-    });
-
-    // totals for excel
-    const totalMin = arr.reduce((s,e)=>s + Number(e.minutes||0), 0);
-    const totalEarn = arr.reduce((s,e)=>s + (e.rate ? (e.minutes/60*e.rate) : 0), 0);
-    csv += `\r\n"TOTALS","","","", "${(totalMin/60).toFixed(2)}", "","${totalEarn.toFixed(2)}", "" , ""\r\n`;
-
-    download('work_hours_excel.csv', csv, 'application/vnd.ms-excel');
-  });
-
-  // ---------- PDF SUMMARY (simple lines with totals) ----------
-  exportPdfBtn.addEventListener('click', ()=>{
-    const arr = loadHistory();
-    if(!arr.length) return alert('No entries to export.');
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-
-    doc.setFontSize(16);
-    doc.text('Work Hours Summary', 14, 20);
-
-    let y = 36;
-    let totalMin = 0, totalEarn = 0;
-    doc.setFontSize(11);
-    arr.forEach(e => {
-      const hrs = (e.minutes/60).toFixed(2);
-      const earn = e.rate ? (e.minutes/60 * e.rate).toFixed(2) : "0.00";
-      totalMin += e.minutes;
-      totalEarn += parseFloat(earn);
-      doc.text(`${e.date} — ${hrs} h — $${earn}`, 14, y);
-      y += 7;
-      if(y > 275){ doc.addPage(); y = 20; doc.setFontSize(11); }
-    });
-
-    doc.setFontSize(12);
-    doc.setFont(undefined, 'bold');
-    doc.text(`Total Hours: ${(totalMin/60).toFixed(2)}`, 14, y+10);
-    doc.text(`Total Earnings: $${totalEarn.toFixed(2)}`, 14, y+18);
-    doc.setFont(undefined, 'normal');
-
-    doc.save('work_hours_summary.pdf');
-  });
-
-  // ---------- PDF ENTRIES (table-like export + totals) ----------
-  exportPdfEntriesBtn.addEventListener('click', ()=>{
-    const arr = loadHistory();
-    if(!arr.length) return alert('No entries to export.');
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ orientation:'landscape' });
-
-    doc.setFontSize(14);
-    doc.text('Work Hours — Full Entries', 12, 18);
-    doc.setFontSize(10);
-    const headers = ['Date','Start','End','Break','Hours','Rate','Earnings','Tag','Notes'];
-    doc.text(headers.join(' | '), 12, 28);
-
-    let y = 36;
-    arr.forEach(r=>{
-      const row = [
-        r.date, r.start, r.end, String(r.break), (r.minutes/60).toFixed(2),
-        r.rate !== null ? Number(r.rate).toFixed(2) : '', r.rate ? (r.minutes/60*r.rate).toFixed(2) : '',
-        r.tag||'', (r.notes||'').slice(0,40)
-      ];
-      doc.text(row.join(' | '), 12, y);
-      y += 7;
-      if(y > 190){ doc.addPage(); y = 20; doc.setFontSize(10); }
-    });
-
-    // totals block
-    const totalMin = arr.reduce((s,e)=>s + Number(e.minutes||0), 0);
-    const totalEarn = arr.reduce((s,e)=>s + (e.rate ? (e.minutes/60*e.rate) : 0), 0);
-
-    doc.setFontSize(12);
-    doc.setFont(undefined, 'bold');
-    doc.text(`Total Hours: ${(totalMin/60).toFixed(2)}`, 12, y+12);
-    doc.text(`Total Earnings: $${totalEarn.toFixed(2)}`, 12, y+20);
-    doc.setFont(undefined, 'normal');
-
-    doc.save('work_hours_entries.pdf');
-  });
-
-  // Update: export buttons done (CSV, summary, excel, pdf, entries pdf)
-
-  // Allow check for share fragment on load
-  function checkShareFragment(){
-    const hash = location.hash || '';
-    if(!hash.includes('share=')) return;
-    const part = hash.split('share=')[1];
-    try{
-      const json = decodeURIComponent(atob(part));
-      const obj = JSON.parse(json);
-      const win = window.open('', '_blank');
-      win.document.write('<html><head><title>Shared Summary</title></head><body>');
-      win.document.write('<h2>Shared Work Summary</h2>');
-      win.document.write('<div>Generated: '+(obj.generatedAt || '')+'</div>');
-      win.document.write('<ul>');
-      (obj.entries||[]).forEach(e=> { win.document.write(`<li>${e.date} ${e.start}-${e.end}: ${e.hours}h — $${e.earnings}</li>`); });
-      win.document.write('</ul></body></html>');
-      win.document.close();
-    } catch(e){ console.warn('Invalid share fragment', e); }
-  }
-  checkShareFragment();
-
-  // Theme toggle
-  toggleThemeBtn.addEventListener('click', ()=>{
-    const app = document.getElementById('app');
-    const next = app.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
-    app.setAttribute('data-theme', next);
-    toggleThemeBtn.textContent = next === 'dark' ? 'Light' : 'Dark';
-  });
-
-  // Utility functions: load/save already defined above. For completeness:
-  // loadHistory(), saveHistory(), idNow() exist earlier.
-
-  // Simple autosave refresh every minute (not necessary but harmless)
-  setInterval(()=>{/* could auto-refresh UI if desired */},60000);
-
-  // End IIFE
-})();
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `TimeTracker_Export_${new Date().toISOString().slice(0,10)}.csv`;
+        a.click();
+    }
 </script>
+
 </body>
 </html>
