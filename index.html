@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Time Tracker — Davi Nevae</title>
+<title>Time & Tax Tracker — Davi Nevae</title>
 <style>
     :root {
         --primary: #2563eb;
@@ -11,6 +11,7 @@
         --card: #ffffff;
         --text: #1f2937;
         --border: #e5e7eb;
+        --green: #10b981;
     }
 
     body {
@@ -23,7 +24,7 @@
     }
 
     .container {
-        max-width: 900px;
+        max-width: 950px; /* Slightly wider for new columns */
         margin: 0 auto;
         display: grid;
         gap: 20px;
@@ -43,6 +44,8 @@
         justify-content: space-between;
         align-items: center;
         margin-bottom: 10px;
+        flex-wrap: wrap;
+        gap: 10px;
     }
     h1 { margin: 0; font-size: 1.5rem; }
     .subtitle { font-size: 0.875rem; color: #6b7280; }
@@ -50,7 +53,7 @@
     /* Form Grid */
     .form-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
         gap: 15px;
         align-items: end;
     }
@@ -79,10 +82,12 @@
 
     /* Table */
     .table-container { overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; min-width: 600px; }
+    table { width: 100%; border-collapse: collapse; min-width: 700px; }
     th, td { text-align: left; padding: 12px; border-bottom: 1px solid var(--border); }
     th { background: #f9fafb; font-size: 0.85rem; color: #6b7280; }
     
+    .net-positive { color: var(--green); font-weight: bold; }
+
     /* Summary Bar */
     .summary {
         display: flex;
@@ -93,6 +98,7 @@
         border-radius: 8px;
         color: var(--primary);
         font-weight: bold;
+        flex-wrap: wrap;
     }
 
     @media (max-width: 600px) {
@@ -107,10 +113,10 @@
     
     <header>
         <div>
-            <h1>Work & Time Tracker</h1>
+            <h1>Time & Tax Tracker</h1>
             <div class="subtitle">Built by Davi Nevae LLC</div>
         </div>
-        <button onclick="exportCSV()" class="secondary">Download CSV</button>
+        <button onclick="exportCSV()" class="secondary">Download Detailed CSV</button>
     </header>
 
     <div class="card">
@@ -121,24 +127,31 @@
                     <input type="date" id="date" required>
                 </div>
                 <div class="form-group">
-                    <label>Start Time</label>
+                    <label>Start</label>
                     <input type="time" id="start" required>
                 </div>
                 <div class="form-group">
-                    <label>End Time</label>
+                    <label>End</label>
                     <input type="time" id="end" required>
-                </div>
-                <div class="form-group">
-                    <label>Break (Mins)</label>
-                    <input type="number" id="breakTime" value="0" min="0">
                 </div>
                 <div class="form-group">
                     <label>Rate ($/hr)</label>
                     <input type="number" id="rate" value="50" step="0.01">
                 </div>
+                
+                <div class="form-group">
+                    <label>Tax %</label>
+                    <input type="number" id="tax" placeholder="Default: 30" min="0" step="0.1">
+                </div>
+
+                <div class="form-group">
+                    <label>Break (Min)</label>
+                    <input type="number" id="breakTime" value="0" min="0">
+                </div>
+                
                 <div class="form-group full-width-mobile">
-                    <label>Description / Tag</label>
-                    <input type="text" id="desc" placeholder="e.g. Client Meeting">
+                    <label>Client / Tag</label>
+                    <input type="text" id="desc" placeholder="e.g. Consulting">
                 </div>
                 <div class="form-group full-width-mobile">
                     <button type="submit">Add Entry</button>
@@ -150,7 +163,8 @@
     <div class="card">
         <div class="summary">
             <span>Total Hours: <span id="totalHours">0.00</span> h</span>
-            <span>Total Earnings: $<span id="totalMoney">0.00</span></span>
+            <span>Gross: $<span id="totalGross">0.00</span></span>
+            <span style="color:var(--green)">Net: $<span id="totalNet">0.00</span></span>
         </div>
 
         <div class="table-container">
@@ -159,10 +173,11 @@
                     <tr>
                         <th>Date</th>
                         <th>Times</th>
-                        <th>Break</th>
                         <th>Desc</th>
                         <th>Hrs</th>
-                        <th>Earned</th>
+                        <th>Gross</th>
+                        <th>Tax</th>
+                        <th>Net Profit</th>
                         <th>Action</th>
                     </tr>
                 </thead>
@@ -179,11 +194,11 @@
 
 <script>
     // --- CONFIGURATION ---
-    const STORAGE_KEY = "davi_nevae_tracker_v1";
+    const STORAGE_KEY = "davi_nevae_tracker_v2";
+    const DEFAULT_TAX_RATE = 30; // Standard freelancer deduction if blank
 
     // --- INITIALIZATION ---
     document.addEventListener("DOMContentLoaded", () => {
-        // Set default date to today
         document.getElementById("date").valueAsDate = new Date();
         renderTable();
     });
@@ -207,44 +222,46 @@
         const breakMins = parseFloat(document.getElementById("breakTime").value) || 0;
         const rate = parseFloat(document.getElementById("rate").value) || 0;
         const desc = document.getElementById("desc").value;
+        
+        // TAX LOGIC
+        const taxInput = document.getElementById("tax").value;
+        // If input is empty string, use Default (30). If it is "0", use 0.
+        const taxPercent = taxInput === "" ? DEFAULT_TAX_RATE : parseFloat(taxInput);
 
-        // Calculate Duration
+        // Time Calculation
         let startTime = new Date(`2000-01-01T${start}`);
         let endTime = new Date(`2000-01-01T${end}`);
-        
-        // Handle overnight shifts (if end time is before start time)
-        if (endTime < startTime) {
-            endTime.setDate(endTime.getDate() + 1);
-        }
+        if (endTime < startTime) endTime.setDate(endTime.getDate() + 1);
 
         let diffMs = endTime - startTime;
         let diffMins = Math.floor(diffMs / 60000) - breakMins;
         
         if (diffMins <= 0) {
-            alert("Error: Duration is zero or negative after break deduction.");
+            alert("Error: Duration is zero or negative.");
             return;
         }
 
         const hours = parseFloat((diffMins / 60).toFixed(2));
-        const earnings = parseFloat((hours * rate).toFixed(2));
+        const grossEarnings = parseFloat((hours * rate).toFixed(2));
+        
+        // TAX MATH
+        const taxAmount = parseFloat((grossEarnings * (taxPercent / 100)).toFixed(2));
+        const netEarnings = parseFloat((grossEarnings - taxAmount).toFixed(2));
 
         const newEntry = {
             id: Date.now(),
-            date,
-            start,
-            end,
-            breakMins,
-            rate,
-            desc,
+            date, start, end, breakMins, rate, desc,
             hours,
-            earnings
+            grossEarnings,
+            taxPercent,
+            taxAmount,
+            netEarnings
         };
 
         const entries = getEntries();
-        entries.unshift(newEntry); // Add to top
+        entries.unshift(newEntry);
         saveEntries(entries);
         
-        // Optional: Clear description but keep rate/date for fast entry
         document.getElementById("desc").value = "";
     }
 
@@ -268,47 +285,51 @@
         tbody.innerHTML = "";
 
         let sumHours = 0;
-        let sumMoney = 0;
+        let sumGross = 0;
+        let sumNet = 0;
 
         entries.forEach(e => {
             sumHours += e.hours;
-            sumMoney += e.earnings;
+            sumGross += e.grossEarnings;
+            sumNet += e.netEarnings;
 
             const row = `
                 <tr>
                     <td>${e.date}</td>
-                    <td>${e.start} - ${e.end}</td>
-                    <td>${e.breakMins}m</td>
+                    <td>${e.start}-${e.end}</td>
                     <td>${e.desc}</td>
                     <td><strong>${e.hours}</strong></td>
-                    <td>$${e.earnings.toFixed(2)}</td>
-                    <td><button onclick="deleteEntry(${e.id})" class="danger" style="padding:4px 8px; font-size:0.8rem;">×</button></td>
+                    <td>$${e.grossEarnings.toFixed(2)}</td>
+                    <td style="color:#6b7280; font-size:0.9em;">${e.taxPercent}%</td>
+                    <td class="net-positive">$${e.netEarnings.toFixed(2)}</td>
+                    <td><button onclick="deleteEntry(${e.id})" class="danger" style="padding:4px 8px;">×</button></td>
                 </tr>
             `;
             tbody.innerHTML += row;
         });
 
         document.getElementById("totalHours").innerText = sumHours.toFixed(2);
-        document.getElementById("totalMoney").innerText = sumMoney.toFixed(2);
+        document.getElementById("totalGross").innerText = sumGross.toFixed(2);
+        document.getElementById("totalNet").innerText = sumNet.toFixed(2);
     }
 
     function exportCSV() {
         const entries = getEntries();
         if (entries.length === 0) { alert("No data to export"); return; }
 
-        let csv = "Date,Start,End,Break(m),Description,Hours,Rate,Earnings\n";
+        // Added Tax Breakdown columns here
+        let csv = "Date,Start,End,Break(m),Description,Hours,Rate,Gross Revenue ($),Tax Rate (%),Tax Deducted ($),Net Profit ($)\n";
         
         entries.forEach(e => {
-            // Escape commas in description to prevent breaking CSV
             const safeDesc = `"${e.desc.replace(/"/g, '""')}"`; 
-            csv += `${e.date},${e.start},${e.end},${e.breakMins},${safeDesc},${e.hours},${e.rate},${e.earnings}\n`;
+            csv += `${e.date},${e.start},${e.end},${e.breakMins},${safeDesc},${e.hours},${e.rate},${e.grossEarnings},${e.taxPercent},${e.taxAmount},${e.netEarnings}\n`;
         });
 
         const blob = new Blob([csv], { type: 'text/csv' });
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `TimeTracker_Export_${new Date().toISOString().slice(0,10)}.csv`;
+        a.download = `DaviNevae_TaxLog_${new Date().toISOString().slice(0,10)}.csv`;
         a.click();
     }
 </script>
